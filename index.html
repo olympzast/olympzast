@@ -15,7 +15,7 @@
         @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-slide { animation: fadeSlideUp 0.3s ease-out forwards; }
         .bottom-nav { background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); border-radius: 30px 30px 0 0; box-shadow: 0 -2px 12px rgba(0,0,0,0.05); }
-        .nav-item { transition: all 0.2s; border-radius: 30px; }
+        .nav-item { transition: all 0.2s; border-radius: 30px; cursor: pointer; }
         .nav-item.active { background: #eef2ff; color: #4f46e5; }
         .quiz-option { transition: 0.1s; border: 1px solid #e2e8f0; cursor: pointer; }
         .quiz-option.selected { background: #eef2ff; border-color: #4f46e5; }
@@ -26,13 +26,15 @@
         .task-card.completed { opacity: 0.75; background: #f3f4f6; border-left: 4px solid #22c55e; }
         .logo-img { max-height: 70px; width: auto; object-fit: contain; margin: 0 auto; }
         .white-header { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 8px 0; }
-        .greeting-blue-block { background: #4f46e5; border-radius: 28px; margin: 16px; padding: 20px; box-shadow: 0 8px 20px rgba(79,70,229,0.25); }
+        .greeting-blue-block { background: #4f46e5; border-radius: 28px; margin: 16px 16px 0 16px; padding: 20px; box-shadow: 0 8px 20px rgba(79,70,229,0.25); }
         .page-indicator { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; transition: all 0.2s; cursor: pointer; }
         .page-indicator.correct { background: #22c55e; color: white; }
         .page-indicator.partial { background: #eab308; color: white; }
         .page-indicator.active { transform: scale(1.1); box-shadow: 0 0 0 3px #4f46e5; }
         .page-indicator.unanswered { background: #e2e8f0; color: #64748b; }
         .task-element-card { background: #f9fafb; border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+        .option-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+        .option-row input { flex: 1; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans pb-20">
@@ -42,7 +44,6 @@
     <div class="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 animate-fade-slide">
         <div class="text-center mb-5">
             <img id="authLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-24 w-auto mx-auto" onerror="this.onerror=null; this.style.display='none'">
-            <div class="w-24 h-24 bg-indigo-100 rounded-2xl mx-auto flex items-center justify-center text-indigo-600 text-3xl hidden"><i class="fas fa-shield-alt"></i></div>
         </div>
         <form id="loginForm">
             <input type="email" id="loginEmail" placeholder="Email" class="w-full border rounded-xl p-3 mb-3" required>
@@ -60,7 +61,8 @@
         <img id="mainLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-16 w-auto object-contain" onerror="this.onerror=null; this.style.display='none'">
     </div>
 
-    <div class="greeting-blue-block mx-4 mt-2">
+    <!-- Приветствие (показывается только на вкладке Задания) -->
+    <div id="greetingContainer" class="greeting-blue-block hidden">
         <div class="flex items-center gap-4">
             <div class="bg-white/20 rounded-full w-14 h-14 flex items-center justify-center text-white text-2xl font-bold" id="greetingAvatar">👤</div>
             <div>
@@ -71,23 +73,27 @@
     </div>
 
     <div class="flex-1 p-4 pb-24 overflow-y-auto">
-        <div id="tasksPanel" class="tab-content w-full"><div id="tasksListContainer" class="space-y-4"></div></div>
+        <div id="tasksPanel" class="tab-content w-full">
+            <div id="tasksListContainer" class="space-y-4 mt-4"></div>
+        </div>
         
+        <!-- КОНСТРУКТОР - удобный, с вариантами и баллами -->
         <div id="constructorPanel" class="tab-content hidden w-full">
             <div class="bg-white rounded-2xl p-5 shadow-md mb-6">
-                <h2 class="text-xl font-bold mb-4">Новое задание</h2>
+                <h2 class="text-xl font-bold mb-4">Создать задание</h2>
                 <div class="mb-4"><input type="text" id="taskName" class="w-full border rounded-xl p-3" placeholder="Название"></div>
                 <div class="mb-5"><input type="text" id="taskClass" class="w-full border rounded-xl p-3" placeholder="Класс (7А, 8Б)"></div>
+                
                 <div class="border-t pt-4">
                     <div class="flex justify-between items-center mb-3">
-                        <h3 class="font-bold text-lg">Страницы</h3>
+                        <h3 class="font-bold text-lg">Страницы задания</h3>
                         <button id="addPageBtn" class="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm"><i class="fas fa-plus mr-1"></i> Страницу</button>
                     </div>
                     <div id="pagesContainer" class="space-y-4 max-h-96 overflow-auto mb-5"></div>
                 </div>
                 <button id="publishTaskBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl">Опубликовать</button>
             </div>
-            <div class="bg-white rounded-2xl p-4"><h3 class="font-bold text-lg mb-3">Мои публикации</h3><div id="myPublishedTasks" class="space-y-2"></div></div>
+            <div class="bg-white rounded-2xl p-4"><h3 class="font-bold text-lg mb-3">Мои задания</h3><div id="myPublishedTasks" class="space-y-2"></div></div>
         </div>
         
         <div id="profilePanel" class="tab-content hidden w-full">
@@ -153,12 +159,10 @@
         setTimeout(() => t.remove(), 2800);
     }
 
-    // Преобразуем pages (может быть объектом или массивом) в массив
     function normalizePages(pages) {
         if (!pages) return [];
         if (Array.isArray(pages)) return pages;
         if (typeof pages === 'object') {
-            // Преобразуем объект {0: [...], 1: [...]] в массив
             const arr = [];
             for (let i = 0; i < Object.keys(pages).length; i++) {
                 if (pages[i]) arr.push(pages[i]);
@@ -242,7 +246,7 @@
             showToast("Добро пожаловать!");
         } catch (err) {
             errorDiv.classList.remove("hidden");
-            errorDiv.innerText = "Ошибка: " + (err.message === "Firebase: Error (auth/user-not-found)." ? "Пользователь не найден" : "Неверный email или пароль");
+            errorDiv.innerText = "Ошибка: неверный email или пароль";
         }
     });
 
@@ -253,6 +257,15 @@
         document.getElementById(`${tab}Panel`).classList.remove("hidden");
         document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
         document.querySelector(`[data-nav="${tab}"]`)?.classList.add("active");
+        
+        // Показываем/скрываем приветствие только на вкладке Задания
+        const greeting = document.getElementById("greetingContainer");
+        if (tab === "tasks") {
+            greeting.classList.remove("hidden");
+        } else {
+            greeting.classList.add("hidden");
+        }
+        
         if (tab === "constructor" && userRole === "mentor") renderConstructorUI();
     }
     document.querySelectorAll("[data-nav]").forEach(btn => btn.addEventListener("click", () => switchNav(btn.dataset.nav)));
@@ -282,7 +295,7 @@
                 <div class="font-bold text-lg">${escapeHtml(t.title)}</div>
                 <div class="text-sm text-gray-500 mt-1">Класс: ${t.targetClass} • Страниц: ${pagesCount}</div>
                 ${isCompleted ? `<div class="text-green-600 text-xs mt-1 font-semibold"><i class="fas fa-check-circle"></i> Пройдено: ${completed.earnedPoints}/${completed.totalPoints} (${completed.percent}%)</div>` : ''}
-                <button data-id="${t.id}" class="task-start mt-3 bg-indigo-50 text-indigo-700 font-semibold py-1.5 px-3 rounded-xl w-full">${userRole === "student" ? (isCompleted ? "Посмотреть результат" : "Начать") : "Просмотреть"}</button>
+                <button data-id="${t.id}" class="task-start mt-3 bg-indigo-50 text-indigo-700 font-semibold py-1.5 px-3 rounded-xl w-full hover:bg-indigo-100 transition">${userRole === "student" ? (isCompleted ? "Посмотреть результат" : "Начать") : "Просмотреть"}</button>
             `;
             container.appendChild(card);
         }
@@ -378,8 +391,7 @@
                 html += `<div class="font-medium mb-2">${escapeHtml(el.content)}</div><div class="space-y-2">`;
                 el.options.forEach((opt, idx) => {
                     const selected = (ans && ans.selected === idx);
-                    const disabledAttr = isMentorMode ? 'style="cursor:default; opacity:0.7"' : '';
-                    html += `<div class="quiz-option p-3 rounded-xl flex items-center gap-3 ${selected ? 'selected' : ''}" data-opt="${idx}" ${disabledAttr}>
+                    html += `<div class="quiz-option p-3 rounded-xl flex items-center gap-3 ${selected ? 'selected' : ''}" data-opt="${idx}">
                         <div class="w-5 h-5 rounded-full border ${selected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}"></div>
                         <span>${escapeHtml(opt)}</span>
                     </div>`;
@@ -389,8 +401,7 @@
             else if (el.type === 'textarea') {
                 html += `<div class="font-medium mb-2">${escapeHtml(el.content)}</div>`;
                 const val = ans ? ans.value : '';
-                const disabledAttr = isMentorMode ? 'readonly disabled' : '';
-                html += `<textarea class="textarea-ans w-full border rounded-xl p-3 mt-2" rows="3" placeholder="Напишите ответ..." data-elem-idx="${i}" ${disabledAttr}>${escapeHtml(val)}</textarea>`;
+                html += `<textarea class="textarea-ans w-full border rounded-xl p-3 mt-2" rows="3" placeholder="Напишите ответ..." data-elem-idx="${i}">${escapeHtml(val)}</textarea>`;
                 html += `<div class="text-xs text-gray-400 mt-1">Баллов: ${el.points}</div>`;
             }
             html += `</div>`;
@@ -402,7 +413,8 @@
             document.querySelectorAll(".quiz-option").forEach(opt => {
                 opt.addEventListener("click", () => {
                     const idx = parseInt(opt.dataset.opt);
-                    const elemIdx = Array.from(opt.closest('.task-element-card').parentNode.children).indexOf(opt.closest('.task-element-card'));
+                    const taskCard = opt.closest('.task-element-card');
+                    const elemIdx = Array.from(taskCard.parentNode.children).indexOf(taskCard);
                     if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {};
                     currentPageAnswers[currentPage][elemIdx] = { type: 'choice', selected: idx };
                     renderFullscreenTask(false);
@@ -511,7 +523,7 @@
         document.body.appendChild(popup);
     };
     
-    // КОНСТРУКТОР (упрощённая версия, но рабочая)
+    // ========== КОНСТРУКТОР С ЛЕГКОЙ НАСТРОЙКОЙ ==========
     let pagesStore = [[]];
     
     function renderConstructorUI() {
@@ -528,9 +540,9 @@
                 </div>
                 <div id="page-${pageIdx}-elements" class="space-y-3 mb-3"></div>
                 <div class="flex gap-2 mt-2 flex-wrap">
-                    <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full text-xs" data-type="text"><i class="fas fa-paragraph mr-1"></i> Текст</button>
-                    <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full text-xs" data-type="choice"><i class="fas fa-check-circle mr-1"></i> Выбор</button>
-                    <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-2 py-1 rounded-full text-xs" data-type="textarea"><i class="fas fa-edit mr-1"></i> Свободный ответ</button>
+                    <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm" data-type="text"><i class="fas fa-paragraph mr-1"></i> Текст</button>
+                    <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm" data-type="choice"><i class="fas fa-check-circle mr-1"></i> Выбор ответа</button>
+                    <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm" data-type="textarea"><i class="fas fa-edit mr-1"></i> Свободный ответ</button>
                 </div>
             `;
             container.appendChild(pageDiv);
@@ -544,28 +556,73 @@
                     elemCard.className = "bg-gray-50 rounded-lg p-3 border";
                     elemCard.innerHTML = `
                         <div class="flex justify-between items-center mb-2">
-                            <span class="font-medium text-sm">${el.type === 'text' ? '📄 Текст' : (el.type === 'choice' ? '✓ Выбор' : '✏️ Текст')}</span>
-                            <button class="delete-elem text-red-500 text-xs">✖</button>
+                            <span class="font-medium">${el.type === 'text' ? '📄 Текст' : (el.type === 'choice' ? '✓ Выбор ответа' : '✏️ Свободный ответ')}</span>
+                            <button class="delete-elem text-red-500 text-sm">Удалить</button>
                         </div>
-                        <div class="mb-2"><label class="text-xs">Баллы</label><input class="elem-points w-20 border rounded p-1 text-sm ml-2" type="number" value="${el.points || (el.type === 'text' ? 0 : 1)}" min="0"></div>
-                        <textarea class="elem-content w-full border rounded p-2 text-sm" rows="2" placeholder="Содержание...">${escapeHtml(el.content || '')}</textarea>
+                        <div class="mb-2">
+                            <label class="text-sm font-medium">Баллы:</label>
+                            <input class="elem-points w-24 border rounded-lg p-1 ml-2 text-sm" type="number" value="${el.points || (el.type === 'text' ? 0 : 1)}" min="0" step="1">
+                        </div>
+                        <textarea class="elem-content w-full border rounded-lg p-2 text-sm mb-2" rows="2" placeholder="Текст задания...">${escapeHtml(el.content || '')}</textarea>
                     `;
+                    
                     if (el.type === 'choice') {
-                        elemCard.innerHTML += `<div class="mt-2"><label class="text-xs">Варианты (через запятую)</label><input class="elem-options w-full border rounded p-1 text-sm" value="${(el.options || ['Вариант 1']).join(', ')}"></div>
-                        <div class="mt-1"><label class="text-xs">Правильный ответ (номер, с 0)</label><input class="elem-correct w-20 border rounded p-1 text-sm" type="number" value="${el.correctIndex || 0}" min="0"></div>`;
+                        elemCard.innerHTML += `
+                            <div class="mt-2">
+                                <label class="text-sm font-medium">Варианты ответов:</label>
+                                <div class="options-list mt-1 space-y-1"></div>
+                                <button class="add-option-btn text-indigo-600 text-sm mt-1"><i class="fas fa-plus mr-1"></i> Добавить вариант</button>
+                            </div>
+                            <div class="mt-2">
+                                <label class="text-sm font-medium">Правильный ответ (номер):</label>
+                                <select class="elem-correct border rounded-lg p-1 ml-2 text-sm"></select>
+                            </div>
+                        `;
                     }
+                    
                     elementsContainer.appendChild(elemCard);
                     
+                    // Обработчики
                     const contentInput = elemCard.querySelector('.elem-content');
                     const pointsInput = elemCard.querySelector('.elem-points');
                     contentInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].content = e.target.value; });
                     pointsInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].points = parseInt(e.target.value) || 0; });
                     
                     if (el.type === 'choice') {
-                        const optsInput = elemCard.querySelector('.elem-options');
-                        const correctInput = elemCard.querySelector('.elem-correct');
-                        optsInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].options = e.target.value.split(',').map(s => s.trim()); });
-                        correctInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].correctIndex = parseInt(e.target.value) || 0; });
+                        if (!el.options) el.options = ["Вариант 1"];
+                        if (el.correctIndex === undefined) el.correctIndex = 0;
+                        
+                        const optionsList = elemCard.querySelector('.options-list');
+                        const correctSelect = elemCard.querySelector('.elem-correct');
+                        
+                        function renderOptions() {
+                            optionsList.innerHTML = '';
+                            correctSelect.innerHTML = '';
+                            el.options.forEach((opt, optIdx) => {
+                                const optDiv = document.createElement('div');
+                                optDiv.className = 'option-row';
+                                optDiv.innerHTML = `
+                                    <input type="text" class="flex-1 border rounded-lg p-1 text-sm option-text" value="${escapeHtml(opt)}">
+                                    <button class="remove-option text-red-400 text-sm">✖</button>
+                                `;
+                                optionsList.appendChild(optDiv);
+                                optDiv.querySelector('.option-text').addEventListener('input', (e) => { el.options[optIdx] = e.target.value; renderOptions(); });
+                                optDiv.querySelector('.remove-option').onclick = () => { el.options.splice(optIdx, 1); if (el.correctIndex >= el.options.length) el.correctIndex = 0; renderOptions(); };
+                                
+                                const option = document.createElement('option');
+                                option.value = optIdx;
+                                option.textContent = `${optIdx + 1}. ${opt.substring(0, 40)}`;
+                                if (el.correctIndex === optIdx) option.selected = true;
+                                correctSelect.appendChild(option);
+                            });
+                            correctSelect.onchange = (e) => { el.correctIndex = parseInt(e.target.value); };
+                        }
+                        renderOptions();
+                        
+                        elemCard.querySelector('.add-option-btn').onclick = () => {
+                            el.options.push(`Новый вариант ${el.options.length + 1}`);
+                            renderOptions();
+                        };
                     }
                     
                     elemCard.querySelector('.delete-elem').onclick = () => { pagesStore[pageIdx].splice(elemIdx, 1); renderElements(); };
@@ -644,7 +701,6 @@
     
     function escapeHtml(s) { if (!s) return ''; return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
     
-    // Инициализация конструктора
     if (document.getElementById("pagesContainer")) {
         pagesStore = [[]];
         renderConstructorUI();
