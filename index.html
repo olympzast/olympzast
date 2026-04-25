@@ -4,130 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Олимпиадская застава</title>
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <!-- Tailwind + Google Fonts (Inter, жирный уверенный) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
-        * {
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-        }
-        @keyframes fadeSlideUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        * { font-family: 'Inter', system-ui, -apple-system, sans-serif; }
+        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         .animate-fade-slide { animation: fadeSlideUp 0.3s ease-out forwards; }
         .animate-fade { animation: fadeIn 0.2s ease-out; }
-        
-        /* Нижняя навигация Telegram-стиль */
-        .bottom-nav {
-            background: rgba(255,255,255,0.96);
-            backdrop-filter: blur(20px);
-            border-radius: 30px 30px 0 0;
-            box-shadow: 0 -2px 12px rgba(0,0,0,0.05);
-        }
-        .nav-item {
-            transition: all 0.2s;
-            border-radius: 30px;
-        }
-        .nav-item.active {
-            background: #eef2ff;
-            color: #4f46e5;
-        }
-        .quiz-option {
-            transition: 0.1s;
-            border: 1px solid #e2e8f0;
-        }
-        .quiz-option.selected {
-            background: #eef2ff;
-            border-color: #4f46e5;
-        }
-        .modal-photo {
-            max-height: 150px;
-            object-fit: contain;
-            border-radius: 16px;
-            cursor: pointer;
-        }
-        .image-popup {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(8px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            cursor: pointer;
-        }
-        .image-popup img {
-            max-width: 90%;
-            max-height: 90%;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-        }
-        .toast-notify {
-            position: fixed;
-            bottom: 90px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: #1e293b;
-            color: white;
-            padding: 12px 24px;
-            border-radius: 50px;
-            font-size: 14px;
-            z-index: 1100;
-            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2);
-            animation: fadeSlideUp 0.2s ease;
-        }
+        .bottom-nav { background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); border-radius: 30px 30px 0 0; box-shadow: 0 -2px 12px rgba(0,0,0,0.05); }
+        .nav-item { transition: all 0.2s; border-radius: 30px; }
+        .nav-item.active { background: #eef2ff; color: #4f46e5; }
+        .quiz-option { transition: 0.1s; border: 1px solid #e2e8f0; }
+        .quiz-option.selected { background: #eef2ff; border-color: #4f46e5; }
+        .modal-photo { max-height: 150px; object-fit: contain; border-radius: 16px; cursor: pointer; }
+        .image-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; }
+        .image-popup img { max-width: 90%; max-height: 90%; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.4); }
+        .toast-notify { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 1100; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); animation: fadeSlideUp 0.2s ease; }
         ::-webkit-scrollbar { width: 5px; }
         ::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 10px; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-        .task-card.completed {
-            opacity: 0.75;
-            background: #f3f4f6;
-            border-left: 4px solid #22c55e;
-        }
-        /* прямоугольный логотип без обрезания */
-        .logo-img {
-            max-height: 48px;
-            width: auto;
-            object-fit: contain;
-        }
-        /* шапка белая, по центру логотип */
-        .white-header {
-            background: white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-        }
-        /* синий блок приветствия с закруглёнными углами */
-        .greeting-blue-block {
-            background: #4f46e5;
-            border-radius: 24px;
-            margin: 16px;
-            padding: 20px 20px;
-            box-shadow: 0 8px 20px rgba(79,70,229,0.25);
-        }
+        .task-card.completed { opacity: 0.75; background: #f3f4f6; border-left: 4px solid #22c55e; }
+        .logo-img { max-height: 70px; width: auto; object-fit: contain; display: block; margin: 0 auto; }
+        .white-header { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 8px 0; }
+        .greeting-blue-block { background: #4f46e5; border-radius: 28px; margin: 16px; padding: 20px 20px; box-shadow: 0 8px 20px rgba(79,70,229,0.25); }
     </style>
 </head>
 <body class="bg-gray-50 font-sans pb-20">
 
-<!-- ЭКРАН АВТОРИЗАЦИИ -->
+<!-- АВТОРИЗАЦИЯ (убраны надписи "Олимпиадская застава" и "платформа", логотип крупнее) -->
 <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-800 to-indigo-900">
     <div class="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 animate-fade-slide">
         <div class="text-center mb-5">
-            <!-- прямоугольный логотип (не круг) -->
-            <img id="authLogo" src="img1/logo.png" alt="Логотип" class="logo-img mx-auto h-16 w-auto object-contain" onerror="this.onerror=null; this.style.display='none'; this.nextSibling.style.display='flex'">
-            <div style="display:none" class="w-16 h-16 bg-indigo-100 rounded-2xl mx-auto flex items-center justify-center text-indigo-600 text-2xl"><i class="fas fa-shield-alt"></i></div>
-            <h1 class="text-2xl font-black mt-3 tracking-tight">Олимпиадская застава</h1>
-            <p class="text-gray-500 text-sm">Платформа для испытаний</p>
+            <img id="authLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-24 w-auto mx-auto" onerror="this.onerror=null; this.style.display='none'; this.nextSibling.style.display='flex'">
+            <div style="display:none" class="w-24 h-24 bg-indigo-100 rounded-2xl mx-auto flex items-center justify-center text-indigo-600 text-3xl"><i class="fas fa-shield-alt"></i></div>
         </div>
         <form id="loginForm">
             <input type="email" id="loginEmail" placeholder="Email" class="w-full border rounded-xl p-3 mb-3" required>
@@ -138,43 +52,40 @@
     </div>
 </div>
 
-<!-- ГЛАВНОЕ ПРИЛОЖЕНИЕ -->
+<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
 <div id="mainApp" class="hidden min-h-screen flex flex-col">
-    <!-- БЕЛАЯ ШАПКА ПО ЦЕНТРУ (логотип) -->
-    <div class="white-header py-3 px-4 flex justify-center items-center sticky top-0 z-20 bg-white">
-        <img id="mainLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-12 w-auto object-contain" onerror="this.onerror=null; this.style.display='none'">
+    <!-- Белая шапка с логотипом (крупнее) -->
+    <div class="white-header py-2 px-4 flex justify-center items-center sticky top-0 z-20 bg-white">
+        <img id="mainLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-16 w-auto object-contain" onerror="this.onerror=null; this.style.display='none'">
     </div>
 
-    <!-- СИНИЙ БЛОК ПРИВЕТСТВИЯ (отдельный, с закруглениями) -->
+    <!-- Синий блок приветствия -->
     <div class="greeting-blue-block mx-4 mt-2">
-        <div class="flex items-center gap-3">
-            <div class="bg-white/20 rounded-full w-12 h-12 flex items-center justify-center text-white text-xl font-bold" id="greetingAvatar">👤</div>
+        <div class="flex items-center gap-4">
+            <div class="bg-white/20 rounded-full w-14 h-14 flex items-center justify-center text-white text-2xl font-bold" id="greetingAvatar">👤</div>
             <div>
-                <div id="greetingText" class="text-indigo-100 text-sm font-medium"></div>
-                <div id="userDisplayName" class="text-white text-xl font-extrabold tracking-tight"></div>
+                <div id="greetingText" class="text-indigo-100 text-base font-medium"></div>
+                <div id="userDisplayName" class="text-white text-2xl font-extrabold tracking-tight"></div>
             </div>
         </div>
     </div>
 
-    <!-- Контентная область -->
     <div class="flex-1 p-4 pb-24 overflow-y-auto">
-        <div id="tasksPanel" class="tab-content w-full">
-            <div id="tasksListContainer" class="space-y-4"></div>
-        </div>
+        <div id="tasksPanel" class="tab-content w-full"><div id="tasksListContainer" class="space-y-4"></div></div>
         <div id="constructorPanel" class="tab-content hidden w-full">
             <div class="bg-white rounded-2xl p-4 shadow-sm mb-6 animate-fade">
-                <h2 class="text-xl font-black tracking-tight mb-3">Новое задание</h2>
-                <input type="text" id="taskName" placeholder="Название" class="w-full border rounded-xl p-2 mb-2">
-                <input type="text" id="taskClass" placeholder="Класс (7А, 8Б)" class="w-full border rounded-xl p-2 mb-4">
-                <div id="elementsContainer" class="space-y-4 max-h-96 overflow-auto mb-4"></div>
-                <div class="flex gap-2 mb-4 flex-wrap">
-                    <button id="addTextBtn" class="bg-gray-100 px-3 py-1.5 rounded-full text-sm font-medium"><i class="fas fa-paragraph mr-1"></i> Текст</button>
-                    <button id="addChoiceBtn" class="bg-gray-100 px-3 py-1.5 rounded-full text-sm font-medium"><i class="fas fa-list mr-1"></i> Вопрос с выбором</button>
-                    <button id="addTextareaBtn" class="bg-gray-100 px-3 py-1.5 rounded-full text-sm font-medium"><i class="fas fa-edit mr-1"></i> Текстовое поле</button>
+                <h2 class="text-xl font-black tracking-tight mb-3">Создать задание</h2>
+                <input type="text" id="taskName" placeholder="Название" class="w-full border rounded-xl p-3 mb-2 text-base">
+                <input type="text" id="taskClass" placeholder="Класс (7А, 8Б)" class="w-full border rounded-xl p-3 mb-4 text-base">
+                <div id="elementsContainer" class="space-y-5 max-h-96 overflow-auto mb-5"></div>
+                <div class="flex gap-2 mb-5 flex-wrap">
+                    <button id="addTextBtn" class="bg-gray-100 px-4 py-2 rounded-full text-sm font-medium"><i class="fas fa-paragraph mr-1"></i> Текст</button>
+                    <button id="addChoiceBtn" class="bg-gray-100 px-4 py-2 rounded-full text-sm font-medium"><i class="fas fa-list mr-1"></i> Вопрос с выбором</button>
+                    <button id="addTextareaBtn" class="bg-gray-100 px-4 py-2 rounded-full text-sm font-medium"><i class="fas fa-edit mr-1"></i> Текстовое поле</button>
                 </div>
-                <button id="publishTaskBtn" class="bg-green-600 w-full text-white py-2 rounded-xl font-bold">Опубликовать</button>
+                <button id="publishTaskBtn" class="bg-green-600 w-full text-white py-3 rounded-xl font-bold text-base">Опубликовать</button>
             </div>
-            <div class="bg-white rounded-2xl p-4"><h3 class="font-black mb-2">Мои задания</h3><div id="myPublishedTasks" class="space-y-2"></div></div>
+            <div class="bg-white rounded-2xl p-4"><h3 class="font-black mb-3">Мои задания</h3><div id="myPublishedTasks" class="space-y-2"></div></div>
         </div>
         <div id="profilePanel" class="tab-content hidden w-full">
             <div class="bg-white rounded-2xl p-5 shadow-sm text-center animate-fade">
@@ -183,15 +94,11 @@
                 <p id="profileEmail" class="text-gray-500 text-sm mt-1"></p>
                 <p class="mt-2"><span class="font-bold">Роль:</span> <span id="profileRole"></span> &nbsp;|&nbsp; <span class="font-bold">Класс:</span> <span id="profileClass"></span></p>
                 <button id="logoutBtnBottom" class="mt-6 bg-red-500 text-white py-2 px-5 rounded-xl w-full font-bold">Выйти</button>
-                <!-- серая маленькая надпись (юмористическая) -->
-                <div class="mt-6 text-xs text-gray-400 border-t pt-4">
-                    Сайт создан в развлекательных и юмористических целях и не несёт негативный характер. Данной организации не существует.
-                </div>
+                <div class="mt-6 text-xs text-gray-400 border-t pt-4">Сайт создан в развлекательных и юмористических целях и не несёт негативный характер. Данной организации не существует.</div>
             </div>
         </div>
     </div>
 
-    <!-- Нижняя навигация (Telegram-style) -->
     <div class="bottom-nav fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 flex justify-around items-center py-2 px-4 z-20">
         <button data-nav="tasks" class="nav-item flex flex-col items-center py-1 px-4 rounded-full text-gray-600"><i class="fas fa-tasks text-xl"></i><span class="text-xs mt-1 font-semibold">Задания</span></button>
         <button data-nav="constructor" class="nav-item mentor-only flex flex-col items-center py-1 px-4 rounded-full text-gray-600"><i class="fas fa-pen-ruler text-xl"></i><span class="text-xs mt-1 font-semibold">Конструктор</span></button>
@@ -214,7 +121,7 @@
 </div>
 
 <script>
-    // ========== FIREBASE ==========
+    // Firebase config
     const config = { apiKey: "AIzaSyDT6xPjDxldqrmjWuG-VF7AVoot-RFUkH0", authDomain: "olymp-e7d79.firebaseapp.com", projectId: "olymp-e7d79", storageBucket: "olymp-e7d79.firebasestorage.app", messagingSenderId: "212523217131", appId: "1:212523217131:web:6acdbf9443cf4f22440eae" };
     firebase.initializeApp(config);
     const auth = firebase.auth(), db = firebase.firestore();
@@ -233,7 +140,6 @@
         document.body.appendChild(toast);
         setTimeout(() => toast.remove(), 2800);
     }
-
     function vibrate() { if(navigator.vibrate) navigator.vibrate(10); }
 
     async function loadUserData(uid) {
@@ -243,9 +149,8 @@
             userClass = doc.data().class || "";
             userDisplayName = doc.data().displayName || doc.data().email?.split('@')[0] || "Ученик";
             return true;
-        } else { showToast("Роль не назначена администратором", true); return false; }
+        } else { showToast("Роль не назначена", true); return false; }
     }
-
     async function loadCompletedTasks() {
         if(userRole !== "student") return;
         let snap = await db.collection("results").where("studentId","==",currentUserObj.uid).get();
@@ -288,11 +193,7 @@
         let initial = userDisplayName.charAt(0).toUpperCase();
         document.getElementById("profileAvatar").innerText = initial;
         document.getElementById("greetingAvatar").innerHTML = initial;
-        try { 
-            let logoPath = "img1/logo.png";
-            document.getElementById("authLogo").src = logoPath;
-            document.getElementById("mainLogo").src = logoPath;
-        } catch(e){}
+        try { ["authLogo","mainLogo"].forEach(id=>{ let img=document.getElementById(id); if(img) img.src = "img1/logo.png"; }); } catch(e){}
     }
     function setGreeting() {
         let hour = new Date().getHours();
@@ -340,65 +241,94 @@
         }));
     }
 
-    // ---------- КОНСТРУКТОР С ФОТО ----------
-    let elementsStore = [];
+    //========== КОНСТРУКТОР С ПОЛНОЙ СОХРАНЯЕМОСТЬЮ (фикс глюка) ==========
+    let elementsStore = []; // каждый элемент хранит все данные, включая уникальный id для связи с DOM
+    
     function renderConstructorUI() {
         let container = document.getElementById("elementsContainer");
         if(!container) return;
         container.innerHTML = "";
         elementsStore.forEach((el, idx) => {
+            const elementId = `elem_${Date.now()}_${idx}_${Math.random()}`;
+            el._uid = elementId;
             let div = document.createElement("div");
             div.className = "border rounded-xl p-3 bg-gray-50";
-            div.innerHTML = `<div class="flex justify-between items-center"><b class="font-bold">${el.type==='text'?'Текст':el.type==='choice'?'Выбор ответа':'Текстовое поле'}</b><button data-idx="${idx}" class="delElem text-red-500 text-sm">Удалить</button></div>`;
+            div.setAttribute("data-elem-idx", idx);
+            div.setAttribute("data-uid", elementId);
+            div.innerHTML = `<div class="flex justify-between items-center mb-2"><b class="font-bold">${el.type==='text'?'📄 Текст':el.type==='choice'?'🔘 Выбор ответа':'✏️ Текстовое поле'}</b><button data-idx="${idx}" class="delElem text-red-500 text-sm font-medium">Удалить</button></div>`;
+            
             if(el.type === 'text') {
-                div.innerHTML += `<textarea class="w-full border p-2 rounded mt-1 content-text" placeholder="Текст">${el.content||''}</textarea><input placeholder="Баллы (0)" class="w-24 border p-1 mt-1 pointsVal" value="${el.points||0}">`;
-            } else if(el.type === 'choice') {
-                div.innerHTML += `<input placeholder="Вопрос" class="w-full border p-2 mt-1 content-text" value="${el.content||''}"><div class="mt-1">Варианты (через запятую): <input class="w-full border p-1 options-input" value="${(el.options||[]).join(',')}"></div><div>Правильные (индексы 0..): <input class="w-full border p-1 correct-input" value="${(el.correct||[]).join(',')}"></div><input placeholder="Макс балл" class="w-24 border p-1 mt-1 pointsVal" value="${el.points||1}">`;
-            } else {
-                div.innerHTML += `<textarea class="w-full border p-2 mt-1 content-text" placeholder="Текст вопроса">${el.content||''}</textarea><input placeholder="Баллы" class="w-24 border p-1 mt-1 pointsVal" value="${el.points||1}">`;
+                div.innerHTML += `<textarea class="w-full border p-2 rounded mt-1 elem-content" placeholder="Текст">${escapeHtml(el.content||'')}</textarea>
+                                  <input placeholder="Баллы (0)" class="w-24 border p-1 mt-2 elem-points" value="${el.points||0}">`;
+            } 
+            else if(el.type === 'choice') {
+                div.innerHTML += `<input placeholder="Вопрос" class="w-full border p-2 rounded mt-1 elem-content" value="${escapeHtml(el.content||'')}">
+                                  <div class="mt-2">Варианты (через запятую): <input class="w-full border p-1 elem-options" value="${(el.options||[]).join(',')}"></div>
+                                  <div class="mt-1">Правильные (индексы 0..): <input class="w-full border p-1 elem-correct" value="${(el.correct||[]).join(',')}"></div>
+                                  <input placeholder="Макс балл" class="w-24 border p-1 mt-2 elem-points" value="${el.points||1}">`;
+            } 
+            else {
+                div.innerHTML += `<textarea class="w-full border p-2 rounded mt-1 elem-content" placeholder="Текст вопроса">${escapeHtml(el.content||'')}</textarea>
+                                  <input placeholder="Баллы" class="w-24 border p-1 mt-2 elem-points" value="${el.points||1}">`;
             }
-            if(el.imageBase64) div.innerHTML += `<div class="mt-2 relative"><img src="${el.imageBase64}" class="h-16 rounded border cursor-pointer preview-img"><button data-idx="${idx}" class="remove-photo text-xs text-red-500 ml-2">Удалить фото</button></div>`;
-            div.innerHTML += `<button data-idx="${idx}" class="add-photo-btn text-xs bg-gray-200 px-2 py-1 rounded mt-2 font-medium">📷 Добавить фото</button><input type="file" accept="image/*" class="photo-file hidden" data-idx="${idx}">`;
+            
+            if(el.imageBase64) {
+                div.innerHTML += `<div class="mt-2 relative flex items-center gap-2"><img src="${el.imageBase64}" class="h-16 rounded border cursor-pointer preview-img"><button class="remove-photo text-xs text-red-500">Удалить фото</button></div>`;
+            }
+            div.innerHTML += `<button class="add-photo-btn text-xs bg-gray-200 px-3 py-1 rounded mt-2 font-medium">📷 Добавить фото</button>
+                              <input type="file" accept="image/*" class="photo-file hidden">`;
             container.appendChild(div);
-        });
-        document.querySelectorAll(".delElem").forEach(btn=>btn.addEventListener("click",(e)=>{ let i=btn.dataset.idx; elementsStore.splice(i,1); renderConstructorUI(); }));
-        document.querySelectorAll(".add-photo-btn").forEach(btn=>btn.addEventListener("click",(e)=>{
-            let idx=btn.dataset.idx; let fileInput = btn.parentElement.querySelector(".photo-file"); fileInput.click();
-            fileInput.onchange = (ev)=>{
+            
+            // привязываем обработчики к конкретному элементу через замыкание с idx
+            const currentDiv = div;
+            const delBtn = currentDiv.querySelector('.delElem');
+            if(delBtn) delBtn.onclick = () => { elementsStore.splice(idx,1); renderConstructorUI(); };
+            
+            const addPhotoBtn = currentDiv.querySelector('.add-photo-btn');
+            const fileInput = currentDiv.querySelector('.photo-file');
+            addPhotoBtn.onclick = () => fileInput.click();
+            fileInput.onchange = (ev) => {
                 let file = ev.target.files[0];
-                if(file){
+                if(file) {
                     let reader = new FileReader();
-                    reader.onload = (re)=> { elementsStore[idx].imageBase64 = re.target.result; renderConstructorUI(); };
+                    reader.onload = (re) => { elementsStore[idx].imageBase64 = re.target.result; renderConstructorUI(); };
                     reader.readAsDataURL(file);
                 }
             };
-        }));
-        document.querySelectorAll(".remove-photo").forEach(btn=>btn.addEventListener("click",(e)=>{ let i=btn.dataset.idx; elementsStore[i].imageBase64 = null; renderConstructorUI(); }));
-        document.querySelectorAll(".preview-img").forEach(img=>img.addEventListener("click",(e)=>showImagePopup(img.src)));
+            const removePhoto = currentDiv.querySelector('.remove-photo');
+            if(removePhoto) removePhoto.onclick = () => { elementsStore[idx].imageBase64 = null; renderConstructorUI(); };
+            const previewImg = currentDiv.querySelector('.preview-img');
+            if(previewImg) previewImg.onclick = () => showImagePopup(previewImg.src);
+            
+            // ОБНОВЛЕНИЕ ДАННЫХ В REAL-TIME (чтобы при любом изменении сохранялись в store)
+            const contentInput = currentDiv.querySelector('.elem-content');
+            const pointsInput = currentDiv.querySelector('.elem-points');
+            const optionsInput = currentDiv.querySelector('.elem-options');
+            const correctInput = currentDiv.querySelector('.elem-correct');
+            
+            if(contentInput) contentInput.addEventListener('input', (e) => { elementsStore[idx].content = e.target.value; });
+            if(pointsInput) pointsInput.addEventListener('input', (e) => { elementsStore[idx].points = parseInt(e.target.value) || 0; });
+            if(optionsInput) optionsInput.addEventListener('input', (e) => { elementsStore[idx].options = e.target.value.split(',').map(s=>s.trim()); });
+            if(correctInput) correctInput.addEventListener('input', (e) => { elementsStore[idx].correct = e.target.value.split(',').map(s=>parseInt(s.trim())).filter(n=>!isNaN(n)); });
+        });
     }
+
     document.getElementById("addTextBtn")?.addEventListener("click",()=>{ elementsStore.push({type:"text", content:"", points:0, imageBase64:null}); renderConstructorUI(); });
     document.getElementById("addChoiceBtn")?.addEventListener("click",()=>{ elementsStore.push({type:"choice", content:"", options:[], correct:[], points:1, imageBase64:null}); renderConstructorUI(); });
     document.getElementById("addTextareaBtn")?.addEventListener("click",()=>{ elementsStore.push({type:"textarea", content:"", points:1, imageBase64:null}); renderConstructorUI(); });
+    
     document.getElementById("publishTaskBtn")?.addEventListener("click", async()=>{
         let title = document.getElementById("taskName").value, targetClass = document.getElementById("taskClass").value;
         if(!title || !targetClass) { showToast("Заполните название и класс", true); return; }
         let finalElems = [];
-        let wrappers = document.querySelectorAll("#elementsContainer > div");
         for(let i=0;i<elementsStore.length;i++){
             let el = elementsStore[i];
-            let wrap = wrappers[i];
-            let content = wrap.querySelector(".content-text")?.value || "";
-            let points = parseInt(wrap.querySelector(".pointsVal")?.value) || 0;
             if(el.type === 'choice') {
-                let optsRaw = wrap.querySelector(".options-input")?.value || "";
-                let options = optsRaw.split(",").map(s=>s.trim());
-                let correctRaw = wrap.querySelector(".correct-input")?.value || "";
-                let correct = correctRaw.split(",").map(s=>parseInt(s.trim())).filter(n=>!isNaN(n));
-                finalElems.push({type:"choice", content, options, correctAnswer:correct, points, imageBase64: el.imageBase64 || null});
+                finalElems.push({ type:"choice", content: el.content || "", options: el.options || [], correctAnswer: el.correct || [], points: Number(el.points) || 1, imageBase64: el.imageBase64 || null });
             } else if(el.type === 'textarea') {
-                finalElems.push({type:"textarea", content, points, imageBase64: el.imageBase64 || null});
+                finalElems.push({ type:"textarea", content: el.content || "", points: Number(el.points) || 1, imageBase64: el.imageBase64 || null });
             } else {
-                finalElems.push({type:"text", content, points, imageBase64: el.imageBase64 || null});
+                finalElems.push({ type:"text", content: el.content || "", points: Number(el.points) || 0, imageBase64: el.imageBase64 || null });
             }
         }
         if(finalElems.length===0) { showToast("Добавьте хотя бы один элемент", true); return; }
@@ -407,16 +337,17 @@
         elementsStore = []; renderConstructorUI(); document.getElementById("taskName").value=""; document.getElementById("taskClass").value="";
         loadMyTasksForMentor(); loadTasks();
     });
+    
     async function loadMyTasksForMentor(){
         if(userRole!=="mentor") return;
         let snap = await db.collection("tasks").where("createdBy","==",currentUserObj.uid).get();
         let cont = document.getElementById("myPublishedTasks");
         cont.innerHTML = "";
-        snap.forEach(doc=>{ cont.innerHTML += `<div class="border-b py-2 flex justify-between items-center"><span class="font-medium">${doc.data().title} (${doc.data().targetClass})</span><button data-id="${doc.id}" class="delMine text-red-500 text-sm">Удалить</button></div>`; });
+        snap.forEach(doc=>{ cont.innerHTML += `<div class="border-b py-2 flex justify-between items-center"><span class="font-medium">${doc.data().title} (${doc.data().targetClass})</span><button data-id="${doc.id}" class="delMine text-red-500 text-sm font-medium">Удалить</button></div>`; });
         document.querySelectorAll(".delMine").forEach(btn=>btn.addEventListener("click", async(e)=>{ if(confirm("Удалить задание?")){ await db.collection("tasks").doc(btn.dataset.id).delete(); loadMyTasksForMentor(); loadTasks(); showToast("Удалено"); } }));
     }
 
-    // ---------- ПРОХОЖДЕНИЕ ----------
+    // Прохождение
     async function startQuiz() {
         let existing = await db.collection("results").where("taskId","==",currentTask.id).where("studentId","==",currentUserObj.uid).get();
         if(!existing.empty){ showToast("Вы уже проходили это задание", true); return; }
