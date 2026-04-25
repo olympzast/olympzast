@@ -1,10 +1,11 @@
+Понял проблему! Firestore не поддерживает вложенные массивы в документах. Нужно преобразовать структуру хранения. Сейчас исправлю — задание будет публиковаться без ошибок.
+```html
 <!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Олимпиадская застава</title>
-    <!-- Firebase -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -45,11 +46,10 @@
 </head>
 <body class="bg-gray-50 font-sans pb-20">
 
-<!-- АВТОРИЗАЦИЯ -->
 <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-800 to-indigo-900">
     <div class="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 animate-fade-slide">
         <div class="text-center mb-5">
-            <img id="authLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-24 w-auto mx-auto" onerror="this.onerror=null; this.style.display='none'; this.nextSibling.style.display='flex'">
+            <img id="authLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-24 w-auto mx-auto" onerror="this.onerror=null; this.style.display='none'">
             <div style="display:none" class="w-24 h-24 bg-indigo-100 rounded-2xl mx-auto flex items-center justify-center text-indigo-600 text-3xl"><i class="fas fa-shield-alt"></i></div>
         </div>
         <form id="loginForm">
@@ -61,7 +61,6 @@
     </div>
 </div>
 
-<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
 <div id="mainApp" class="hidden min-h-screen flex flex-col">
     <div class="white-header py-2 px-4 flex justify-center items-center sticky top-0 z-20 bg-white">
         <img id="mainLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-16 w-auto object-contain" onerror="this.onerror=null; this.style.display='none'">
@@ -80,7 +79,6 @@
     <div class="flex-1 p-4 pb-24 overflow-y-auto">
         <div id="tasksPanel" class="tab-content w-full"><div id="tasksListContainer" class="space-y-4"></div></div>
         
-        <!-- КОНСТРУКТОР: страницы, внутри каждой страницы несколько элементов -->
         <div id="constructorPanel" class="tab-content hidden w-full">
             <div class="bg-white rounded-2xl p-5 shadow-md mb-6">
                 <h2 class="text-xl font-bold mb-4">Новое задание</h2>
@@ -128,17 +126,14 @@
     </div>
 </div>
 
-<!-- ПОЛНОЭКРАННОЕ ОКНО ЗАДАНИЯ -->
 <div id="taskFullscreen" class="fixed inset-0 bg-white z-50 hidden flex flex-col">
     <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center shadow-sm z-10">
         <button id="closeTaskBtn" class="text-gray-500 text-2xl">&times;</button>
         <h2 id="fsTaskTitle" class="font-bold text-lg"></h2>
         <div class="w-8"></div>
     </div>
-    
     <div id="fsPagesContainer" class="flex justify-center gap-2 py-3 px-2 flex-wrap border-b bg-gray-50"></div>
     <div id="fsPageContent" class="flex-1 overflow-auto p-6"></div>
-    
     <div class="border-t p-4 flex justify-between items-center bg-white">
         <button id="fsPrevPage" class="bg-gray-200 px-5 py-2 rounded-xl disabled:opacity-40 font-medium"><i class="fas fa-arrow-left mr-2"></i>Назад</button>
         <span id="fsPageCounter" class="text-sm text-gray-500"></span>
@@ -148,7 +143,7 @@
 </div>
 
 <script>
-    const config = { apiKey: "AIzaSyDT6xPjDxldqrmjWuG-VF7AVoot-RFUkH0", authDomain: "olymp-e7d79.firebaseapp.com", projectId: "olymp-e7d79", storageBucket: "olymp-e7d79.firebasestorage.app", messagingSenderId: "212523217131", appId: "1:212523217131:web:6acdbf9443cf4f22440eae" };
+    const config = { apiKey: "AIzaSyDT6xPjDxldqrmjWuG-VF7AVoot-RFUkH0", authDomain: "olymp-e7d79.firebaseapp.com", projectId: "olymp-e7d79", storageBucket: "olymp-e7d79.firebasestorage.app", messagingSenderId: "212523217131", appId: "1:212523217131:web:6acdbf9443cf4f22440eaa" };
     firebase.initializeApp(config);
     const auth = firebase.auth(), db = firebase.firestore();
 
@@ -462,8 +457,8 @@
         document.body.appendChild(popup);
     };
     
-    // ========== КОНСТРУКТОР СТРАНИЦ И ЭЛЕМЕНТОВ ==========
-    let pagesStore = []; // массив страниц, каждая страница — массив элементов
+    // ========== КОНСТРУКТОР ==========
+    let pagesStore = []; // массив страниц, каждая страница — массив объектов элементов
     
     function renderConstructorUI() {
         let container = document.getElementById("pagesContainer");
@@ -499,7 +494,6 @@
                     if(el.imageBase64) elemCard.innerHTML += `<div class="mt-2"><img src="${el.imageBase64}" class="h-12 rounded cursor-pointer preview-img"><button class="remove-photo text-red-500 text-xs ml-2">Удалить фото</button></div>`;
                     elemCard.innerHTML += `<button class="add-photo text-indigo-600 text-xs mt-1">+ Добавить фото</button><input type="file" accept="image/*" class="photo-file hidden">`;
                     elementsContainer.appendChild(elemCard);
-                    
                     attachElemHandlers(elemCard, pageIdx, elemIdx, el);
                 });
             }
@@ -581,33 +575,37 @@
         if(!title || !targetClass) { showToast("Заполните название и класс", true); return; }
         if(pagesStore.length === 0) { showToast("Добавьте хотя бы одну страницу", true); return; }
         
-        let finalPages = [];
-        for(let page of pagesStore) {
-            let finalPage = [];
-            for(let el of page) {
-                let finalEl = { 
-                    type: el.type, 
-                    points: Number(el.points) || (el.type === 'text' ? 0 : 1), 
-                    imageBase64: el.imageBase64 || null 
+        // Преобразуем страницы в формат без вложенных массивов (используем объекты с индексами)
+        let pagesObj = {};
+        for(let pageIdx = 0; pageIdx < pagesStore.length; pageIdx++) {
+            let page = pagesStore[pageIdx];
+            let pageElements = [];
+            for(let elemIdx = 0; elemIdx < page.length; elemIdx++) {
+                let el = page[elemIdx];
+                let elementObj = {
+                    type: el.type,
+                    points: Number(el.points) || (el.type === 'text' ? 0 : 1),
+                    imageBase64: el.imageBase64 || null
                 };
-                if(el.type === 'text') finalEl.content = el.content || "";
-                else if(el.type === 'choice') {
-                    finalEl.content = el.content || "";
-                    finalEl.options = el.options || [];
-                    finalEl.correctAnswer = [el.correctIndex || 0];
+                if(el.type === 'text') {
+                    elementObj.content = el.content || "";
+                } else if(el.type === 'choice') {
+                    elementObj.content = el.content || "";
+                    elementObj.options = el.options || ["Вариант 1"];
+                    elementObj.correctAnswer = [el.correctIndex || 0];
                 } else {
-                    finalEl.content = el.content || "";
+                    elementObj.content = el.content || "";
                 }
-                finalPage.push(finalEl);
+                pageElements.push(elementObj);
             }
-            finalPages.push(finalPage);
+            pagesObj[pageIdx] = pageElements;
         }
         
         try {
             await db.collection("tasks").add({
                 title: title,
                 targetClass: targetClass,
-                pages: finalPages,
+                pages: pagesObj,  // объект для избежания вложенных массивов
                 published: true,
                 createdBy: currentUserObj.uid,
                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -650,3 +648,4 @@
 </script>
 </body>
 </html>
+```
