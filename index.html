@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Казбэк Learn</title>
-    <!-- Favicon -->
     <link rel="icon" type="image/png" href="img1/favicon.png">
     <link rel="shortcut icon" href="img1/favicon.png">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
@@ -15,45 +14,119 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <style>
         * { font-family: 'Inter', system-ui, sans-serif; }
-        @keyframes fadeSlideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-slide { animation: fadeSlideUp 0.3s ease-out forwards; }
-        .bottom-nav { background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); border-radius: 30px 30px 0 0; box-shadow: 0 -2px 12px rgba(0,0,0,0.05); }
+        
+        /* Анимации */
+        @keyframes fadeSlideUp { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        @keyframes fadeSlideDown { 
+            from { opacity: 0; transform: translateY(-20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        @keyframes scaleIn { 
+            from { opacity: 0; transform: scale(0.95); } 
+            to { opacity: 1; transform: scale(1); } 
+        }
+        @keyframes ripple { 
+            0% { transform: scale(0); opacity: 0.5; }
+            100% { transform: scale(2); opacity: 0; }
+        }
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        .animate-fade-slide-up { animation: fadeSlideUp 0.3s ease-out forwards; }
+        .animate-fade-slide-down { animation: fadeSlideDown 0.3s ease-out forwards; }
+        .animate-scale-in { animation: scaleIn 0.25s ease-out forwards; }
+        .animate-slide-right { animation: slideInRight 0.3s ease-out forwards; }
+        .animate-slide-left { animation: slideInLeft 0.3s ease-out forwards; }
+        .animate-bounce { animation: bounce 0.2s ease-in-out; }
+        
+        .bottom-nav { background: rgba(255,255,255,0.96); backdrop-filter: blur(20px); border-radius: 30px 30px 0 0; box-shadow: 0 -2px 12px rgba(0,0,0,0.05); transition: all 0.2s; }
         .nav-item { transition: all 0.2s; border-radius: 30px; cursor: pointer; }
-        .nav-item.active { background: #eef2ff; color: #4f46e5; }
-        .quiz-option { transition: 0.1s; border: 1px solid #e2e8f0; cursor: pointer; }
-        .quiz-option.selected { background: #eef2ff; border-color: #4f46e5; }
-        .modal-photo { max-height: 150px; object-fit: contain; border-radius: 16px; cursor: pointer; }
-        .image-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; }
-        .image-popup img { max-width: 90%; max-height: 90%; border-radius: 20px; }
-        .toast-notify { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 1100; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); animation: fadeSlideUp 0.2s ease; }
-        .task-card { background: white; }
-        .task-card.mentor-view { background: #f3f4f6; border-left: 4px solid #9ca3af; opacity: 0.9; }
-        .logo-img { max-height: 70px; width: auto; object-fit: contain; margin: 0 auto; }
+        .nav-item.active { background: #eef2ff; color: #4f46e5; transform: scale(1.05); }
+        .nav-item:active { transform: scale(0.95); }
+        
+        .quiz-option { transition: all 0.15s ease; border: 1px solid #e2e8f0; cursor: pointer; position: relative; overflow: hidden; }
+        .quiz-option.selected { background: #eef2ff; border-color: #4f46e5; transform: scale(1.01); }
+        .quiz-option:active { transform: scale(0.98); }
+        .quiz-option .ripple-effect { position: absolute; border-radius: 50%; background: rgba(79, 70, 229, 0.3); transform: scale(0); animation: ripple 0.4s linear; pointer-events: none; }
+        
+        .modal-photo { max-height: 150px; object-fit: contain; border-radius: 16px; cursor: pointer; transition: transform 0.2s; }
+        .modal-photo:hover { transform: scale(1.02); }
+        
+        .image-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; z-index: 1000; cursor: pointer; animation: fadeSlideUp 0.2s ease-out; }
+        .image-popup img { max-width: 90%; max-height: 90%; border-radius: 20px; animation: scaleIn 0.25s ease-out; }
+        
+        .toast-notify { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); background: #1e293b; color: white; padding: 12px 24px; border-radius: 50px; font-size: 14px; z-index: 1100; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.2); animation: fadeSlideUp 0.25s ease-out; }
+        
+        .task-card { background: white; transition: all 0.25s ease; cursor: pointer; }
+        .task-card:hover { transform: translateY(-3px); box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); }
+        .task-card:active { transform: translateY(0); }
+        .task-card.mentor-view { background: #f3f4f6; border-left: 4px solid #9ca3af; }
+        .task-card.completed { background: #f3f4f6; border-left: 4px solid #22c55e; }
+        
+        .logo-img { max-height: 70px; width: auto; object-fit: contain; margin: 0 auto; transition: transform 0.2s; }
+        .logo-img:hover { transform: scale(1.02); }
+        
         .white-header { background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 8px 0; }
-        .greeting-blue-block { background: #4f46e5; border-radius: 28px; margin: 16px 16px 0 16px; padding: 20px; box-shadow: 0 8px 20px rgba(79,70,229,0.25); }
-        .page-indicator { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; transition: all 0.2s; cursor: pointer; background: #e2e8f0; color: #64748b; }
+        .greeting-blue-block { background: #4f46e5; border-radius: 28px; margin: 16px 16px 0 16px; padding: 20px; box-shadow: 0 8px 20px rgba(79,70,229,0.25); transition: transform 0.2s; }
+        .greeting-blue-block:hover { transform: translateY(-2px); }
+        
+        .page-indicator { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; transition: all 0.2s ease; cursor: pointer; background: #e2e8f0; color: #64748b; }
         .page-indicator.completed { background: #22c55e; color: white; }
         .page-indicator.active { transform: scale(1.1); box-shadow: 0 0 0 3px #4f46e5; background: #4f46e5; color: white; }
-        .task-element-card { background: #f9fafb; border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid #e5e7eb; }
+        .page-indicator:active { transform: scale(0.95); }
+        
+        .task-element-card { background: #f9fafb; border-radius: 16px; padding: 16px; margin-bottom: 20px; border: 1px solid #e5e7eb; transition: all 0.2s; animation: fadeSlideUp 0.25s ease-out; }
+        
         .option-row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
-        .option-row input { flex: 1; }
+        .option-row input { flex: 1; transition: all 0.2s; }
+        .option-row input:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 2px rgba(79,70,229,0.2); }
+        
         .correct-answer { color: #22c55e; font-weight: 600; background: #f0fdf4; }
         .wrong-answer { color: #ef4444; background: #fef2f2; }
-        .student-result-row { border-bottom: 1px solid #e5e7eb; padding: 12px; cursor: pointer; transition: background 0.2s; }
-        .student-result-row:hover { background: #f3f4f6; }
-        .fullscreen-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; overflow-y: auto; }
+        
+        .student-result-row { border-bottom: 1px solid #e5e7eb; padding: 12px; cursor: pointer; transition: all 0.2s; }
+        .student-result-row:hover { background: #f3f4f6; transform: translateX(5px); }
+        
+        .preview-img { max-height: 80px; border-radius: 8px; cursor: pointer; margin-top: 8px; transition: transform 0.2s; }
+        .preview-img:hover { transform: scale(1.05); }
+        
+        .photo-preview-container { position: relative; display: inline-block; margin-top: 8px; }
+        .remove-photo-btn { position: absolute; top: -8px; right: -8px; background: #ef4444; color: white; border-radius: 50%; width: 20px; height: 20px; display: flex; align-items: center; justify-content: center; font-size: 12px; cursor: pointer; transition: transform 0.2s; }
+        .remove-photo-btn:hover { transform: scale(1.1); }
+        
+        button, .nav-item, .task-start, .delete-elem, .add-option-btn, .add-photo-btn, .add-elem-btn { transition: all 0.15s ease; }
+        button:active, .nav-item:active, .task-start:active { transform: scale(0.97); }
+        
+        .tab-content { animation: fadeSlideUp 0.25s ease-out; }
+        .modal-transition { animation: scaleIn 0.25s ease-out; }
+        
+        input, textarea, select { transition: all 0.2s; }
+        input:focus, textarea:focus, select:focus { outline: none; border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1); }
     </style>
 </head>
 <body class="bg-gray-50 font-sans pb-20">
 
 <!-- АВТОРИЗАЦИЯ -->
 <div id="authScreen" class="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-indigo-800 to-indigo-900">
-    <div class="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 animate-fade-slide">
+    <div class="bg-white rounded-3xl shadow-xl max-w-md w-full p-6 animate-fade-slide-up">
         <div class="text-center mb-5"><img id="authLogo" src="img1/logo.png" alt="Логотип" class="logo-img h-24 w-auto mx-auto" onerror="this.onerror=null; this.style.display='none'"></div>
         <form id="loginForm">
-            <input type="email" id="loginEmail" placeholder="Email" class="w-full border rounded-xl p-3 mb-3" required>
-            <input type="password" id="loginPassword" placeholder="Пароль" class="w-full border rounded-xl p-3 mb-4" required>
-            <button class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Войти</button>
+            <input type="email" id="loginEmail" placeholder="Email" class="w-full border rounded-xl p-3 mb-3 transition-all focus:ring-2 focus:ring-indigo-400" required>
+            <input type="password" id="loginPassword" placeholder="Пароль" class="w-full border rounded-xl p-3 mb-4 transition-all focus:ring-2 focus:ring-indigo-400" required>
+            <button class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold transition-all hover:bg-indigo-700 active:scale-98">Войти</button>
         </form>
         <p class="text-xs text-center text-gray-400 mt-4">Аккаунты создаются администратором</p>
         <div id="loginError" class="text-red-500 text-sm text-center mt-2 hidden"></div>
@@ -67,71 +140,71 @@
     </div>
     <div id="greetingContainer" class="greeting-blue-block hidden">
         <div class="flex items-center gap-4">
-            <div class="bg-white/20 rounded-full w-14 h-14 flex items-center justify-center text-white text-2xl font-bold" id="greetingAvatar">👤</div>
+            <div class="bg-white/20 rounded-full w-14 h-14 flex items-center justify-center text-white text-2xl font-bold transition-transform hover:scale-105" id="greetingAvatar">👤</div>
             <div><div id="greetingText" class="text-indigo-100 text-base font-medium"></div><div id="userDisplayName" class="text-white text-2xl font-extrabold"></div></div>
         </div>
     </div>
     <div class="flex-1 p-4 pb-24 overflow-y-auto">
         <div id="tasksPanel" class="tab-content w-full"><div id="tasksListContainer" class="space-y-4 mt-4"></div></div>
         <div id="constructorPanel" class="tab-content hidden w-full">
-            <div class="bg-white rounded-2xl p-5 shadow-md mb-6">
+            <div class="bg-white rounded-2xl p-5 shadow-md mb-6 animate-fade-slide-up">
                 <h2 class="text-xl font-bold mb-4">Создать задание</h2>
-                <div class="mb-4"><input type="text" id="taskName" class="w-full border rounded-xl p-3" placeholder="Название"></div>
-                <div class="mb-5"><input type="text" id="taskClass" class="w-full border rounded-xl p-3" placeholder="Класс (7А, 8Б)"></div>
+                <div class="mb-4"><input type="text" id="taskName" class="w-full border rounded-xl p-3 transition-all" placeholder="Название"></div>
+                <div class="mb-5"><input type="text" id="taskClass" class="w-full border rounded-xl p-3 transition-all" placeholder="Класс (7А, 8Б)"></div>
                 <div class="border-t pt-4">
-                    <div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg">Страницы</h3><button id="addPageBtn" class="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm"><i class="fas fa-plus mr-1"></i> Страницу</button></div>
+                    <div class="flex justify-between items-center mb-3"><h3 class="font-bold text-lg">Страницы</h3><button id="addPageBtn" class="bg-indigo-600 text-white px-3 py-1.5 rounded-full text-sm transition-all hover:bg-indigo-700 active:scale-95"><i class="fas fa-plus mr-1"></i> Страницу</button></div>
                     <div id="pagesContainer" class="space-y-4 max-h-96 overflow-auto mb-5"></div>
                 </div>
-                <button id="publishTaskBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl">Опубликовать</button>
+                <button id="publishTaskBtn" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 rounded-xl transition-all active:scale-98">Опубликовать</button>
             </div>
-            <div class="bg-white rounded-2xl p-4"><h3 class="font-bold text-lg mb-3">Мои задания</h3><div id="myPublishedTasks" class="space-y-2"></div></div>
+            <div class="bg-white rounded-2xl p-4 animate-fade-slide-up"><h3 class="font-bold text-lg mb-3">Мои задания</h3><div id="myPublishedTasks" class="space-y-2"></div></div>
         </div>
         <div id="profilePanel" class="tab-content hidden w-full">
-            <div class="bg-white rounded-2xl p-5 text-center">
-                <div class="w-24 h-24 bg-indigo-100 rounded-2xl mx-auto flex items-center justify-center text-3xl font-bold text-indigo-700 mb-3" id="profileAvatar"></div>
+            <div class="bg-white rounded-2xl p-5 text-center animate-fade-slide-up">
+                <div class="w-24 h-24 bg-indigo-100 rounded-2xl mx-auto flex items-center justify-center text-3xl font-bold text-indigo-700 mb-3 transition-transform hover:scale-105" id="profileAvatar"></div>
                 <h2 id="profileName" class="text-xl font-bold"></h2>
                 <p id="profileEmail" class="text-gray-500 text-sm mt-1"></p>
                 <p class="mt-2"><span class="font-semibold">Роль:</span> <span id="profileRole"></span> &nbsp;|&nbsp; <span class="font-semibold">Класс:</span> <span id="profileClass"></span></p>
-                <button id="aboutPlatformBtn" class="mt-4 bg-indigo-100 text-indigo-700 py-2 px-5 rounded-xl w-full font-semibold transition hover:bg-indigo-200"><i class="fas fa-info-circle mr-2"></i>О платформе</button>
-                <button id="logoutBtnBottom" class="mt-3 bg-red-500 text-white py-2 px-5 rounded-xl w-full font-bold transition hover:bg-red-600">Выйти</button>
+                <button id="aboutPlatformBtn" class="mt-4 bg-indigo-100 text-indigo-700 py-2 px-5 rounded-xl w-full font-semibold transition-all hover:bg-indigo-200 active:scale-98"><i class="fas fa-info-circle mr-2"></i>О платформе</button>
+                <button id="logoutBtnBottom" class="mt-3 bg-red-500 text-white py-2 px-5 rounded-xl w-full font-bold transition-all hover:bg-red-600 active:scale-98">Выйти</button>
                 <div class="mt-6 text-xs text-gray-400 border-t pt-4">Сайт создан в развлекательных и юмористических целях и не несёт негативный характер. Данной организации не существует.</div>
             </div>
         </div>
     </div>
     <div class="bottom-nav fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-lg border-t border-gray-100 flex justify-around items-center py-2 px-4 z-20">
-        <button data-nav="tasks" class="nav-item flex flex-col items-center py-1 px-4 rounded-full text-gray-600"><i class="fas fa-tasks text-xl"></i><span class="text-xs mt-1">Задания</span></button>
-        <button data-nav="constructor" class="nav-item mentor-only flex flex-col items-center py-1 px-4 rounded-full text-gray-600"><i class="fas fa-pen-ruler text-xl"></i><span class="text-xs mt-1">Конструктор</span></button>
-        <button data-nav="profile" class="nav-item flex flex-col items-center py-1 px-4 rounded-full text-gray-600"><i class="fas fa-user-circle text-xl"></i><span class="text-xs mt-1">Профиль</span></button>
+        <button data-nav="tasks" class="nav-item flex flex-col items-center py-1 px-4 rounded-full text-gray-600 transition-all"><i class="fas fa-tasks text-xl"></i><span class="text-xs mt-1">Задания</span></button>
+        <button data-nav="constructor" class="nav-item mentor-only flex flex-col items-center py-1 px-4 rounded-full text-gray-600 transition-all"><i class="fas fa-pen-ruler text-xl"></i><span class="text-xs mt-1">Конструктор</span></button>
+        <button data-nav="profile" class="nav-item flex flex-col items-center py-1 px-4 rounded-full text-gray-600 transition-all"><i class="fas fa-user-circle text-xl"></i><span class="text-xs mt-1">Профиль</span></button>
     </div>
 </div>
 
 <!-- МОДАЛКА "О ПЛАТФОРМЕ" -->
-<div id="aboutModal" class="fixed inset-0 bg-white z-50 hidden flex flex-col">
-    <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-        <h2 class="font-bold text-xl">О «Казбэк Learn»</h2>
-        <button id="closeAboutBtn" class="text-gray-500 text-2xl">&times;</button>
-    </div>
-    <div class="flex-1 overflow-auto p-6">
-        <div class="max-w-2xl mx-auto">
-            <p class="text-lg text-gray-700 leading-relaxed">Казбэк Learn — это образовательная платформа для учителей и учеников, где наставники (учителя) могут выдавать своим ученикам задания и различные курсы. 100% всех учителей в Рашении выбирают нас за качество нашей платформы, удобство в использовании и интуитивный интерфейс.</p>
+<div id="aboutModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 hidden flex items-center justify-center animate-fade-slide-up">
+    <div class="bg-white rounded-2xl max-w-md w-full mx-4 overflow-hidden animate-scale-in">
+        <div class="bg-white border-b px-5 py-4 flex justify-between items-center">
+            <h2 class="font-bold text-xl">О «Казбэк Learn»</h2>
+            <button id="closeAboutBtn" class="text-gray-500 text-2xl hover:text-gray-700 transition-all">&times;</button>
+        </div>
+        <div class="p-6">
+            <p class="text-gray-700 leading-relaxed">Казбэк Learn — это образовательная платформа для учителей и учеников, где наставники (учителя) могут выдавать своим ученикам задания и различные курсы. 100% всех учителей в России выбирают нас за качество нашей платформы, удобство в использовании и интуитивный интерфейс.</p>
         </div>
     </div>
 </div>
 
 <!-- ПОЛНОЭКРАННОЕ ОКНО ЗАДАНИЯ -->
-<div id="taskFullscreen" class="fixed inset-0 bg-white z-50 hidden flex flex-col">
+<div id="taskFullscreen" class="fixed inset-0 bg-white z-50 hidden flex flex-col animate-fade-slide-up">
     <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
-        <button id="closeTaskBtn" class="text-gray-500 text-2xl">&times;</button>
+        <button id="closeTaskBtn" class="text-gray-500 text-2xl disabled:opacity-30 disabled:cursor-not-allowed transition-all hover:text-gray-700" disabled>&times;</button>
         <h2 id="fsTaskTitle" class="font-bold text-lg"></h2>
         <div class="w-8"></div>
     </div>
     <div id="fsPagesContainer" class="flex justify-center gap-2 py-3 px-2 flex-wrap border-b bg-gray-50"></div>
     <div id="fsPageContent" class="flex-1 overflow-auto p-6"></div>
     <div class="border-t p-4 flex justify-between">
-        <button id="fsPrevPage" class="bg-gray-200 px-5 py-2 rounded-xl disabled:opacity-40"><i class="fas fa-arrow-left mr-2"></i>Назад</button>
+        <button id="fsPrevPage" class="bg-gray-200 px-5 py-2 rounded-xl disabled:opacity-40 transition-all hover:bg-gray-300 active:scale-95"><i class="fas fa-arrow-left mr-2"></i>Назад</button>
         <span id="fsPageCounter" class="text-sm text-gray-500 self-center"></span>
-        <button id="fsNextPage" class="bg-indigo-600 text-white px-5 py-2 rounded-xl">Далее</button>
-        <button id="fsFinishBtn" class="bg-green-600 text-white px-5 py-2 rounded-xl hidden">Завершить</button>
+        <button id="fsNextPage" class="bg-indigo-600 text-white px-5 py-2 rounded-xl transition-all hover:bg-indigo-700 active:scale-95">Далее<i class="fas fa-arrow-right ml-2"></i></button>
+        <button id="fsFinishBtn" class="bg-green-600 text-white px-5 py-2 rounded-xl hidden transition-all hover:bg-green-700 active:scale-95">Завершить</button>
     </div>
 </div>
 
@@ -141,16 +214,30 @@
     const auth = firebase.auth(), db = firebase.firestore();
 
     let currentUserObj = null, userRole = null, userClass = null, userDisplayName = "Пользователь";
-    let currentTask = null, currentPagesArray = [], currentPageAnswers = [], currentPage = 0, isViewMode = false;
+    let currentTask = null, currentPagesArray = [], currentPageAnswers = [], currentPage = 0, isViewMode = false, isCompletedAndSaved = false;
     let completedTasksData = new Map();
     let mentorStudentsList = [];
 
     function showToast(msg, isErr = false) { let t = document.createElement('div'); t.className = 'toast-notify'; t.innerHTML = `<i class="fas ${isErr ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2"></i>${msg}`; t.style.background = isErr ? '#b91c1c' : '#1e293b'; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
 
+    function addRippleEffect(element, event) {
+        const ripple = document.createElement('span');
+        ripple.classList.add('ripple-effect');
+        const rect = element.getBoundingClientRect();
+        const size = Math.max(rect.width, rect.height);
+        ripple.style.width = ripple.style.height = `${size}px`;
+        ripple.style.left = `${event.clientX - rect.left - size/2}px`;
+        ripple.style.top = `${event.clientY - rect.top - size/2}px`;
+        element.style.position = 'relative';
+        element.style.overflow = 'hidden';
+        element.appendChild(ripple);
+        setTimeout(() => ripple.remove(), 400);
+    }
+
     function normalizePages(pages) { if (!pages) return []; if (Array.isArray(pages)) return pages; if (typeof pages === 'object') { const arr = []; for (let i = 0; i < Object.keys(pages).length; i++) if (pages[i]) arr.push(pages[i]); return arr; } return []; }
 
     async function getUserDisplayName(uid) {
-        try { const doc = await db.collection("users").doc(uid).get(); return doc.exists ? (doc.data().displayName || doc.data().email?.split('@')[0] || "Ученик") : "Ученик"; } catch(e) { return "Ученик"; }
+        try { const doc = await db.collection("users").doc(uid).get(); return doc.exists ? (doc.data().displayName || doc.data().email?.split('@')[0] || "Простолюдин") : "Простолюдин"; } catch(e) { return "Простолюдин"; }
     }
 
     async function loadUserRole(uid) { try { const doc = await db.collection("users").doc(uid).get(); if (doc.exists) { userRole = doc.data().role; userClass = doc.data().class || ""; userDisplayName = doc.data().displayName || doc.data().email?.split('@')[0] || "Пользователь"; return true; } else { showToast("Роль не назначена", true); return false; } } catch(e) { showToast("Ошибка", true); return false; } }
@@ -162,7 +249,8 @@
             if (userRole === "student") { const snap = await db.collection("results").where("studentId", "==", user.uid).get(); completedTasksData.clear(); snap.forEach(d => completedTasksData.set(d.data().taskId, d.data())); }
             document.getElementById("authScreen").classList.add("hidden"); document.getElementById("mainApp").classList.remove("hidden");
             document.getElementById("userDisplayName").innerText = userDisplayName; document.getElementById("profileName").innerText = userDisplayName; document.getElementById("profileEmail").innerText = user.email;
-            document.getElementById("profileRole").innerText = userRole === "mentor" ? "Наставник" : "Ученик"; document.getElementById("profileClass").innerText = userClass || "—";
+            let roleDisplay = userRole === "mentor" ? "Наставник" : "Простолюдин";
+            document.getElementById("profileRole").innerText = roleDisplay; document.getElementById("profileClass").innerText = userClass || "—";
             const initial = userDisplayName.charAt(0).toUpperCase(); document.getElementById("greetingAvatar").innerHTML = initial; document.getElementById("profileAvatar").innerHTML = initial;
             const hour = new Date().getHours(); document.getElementById("greetingText").innerHTML = hour < 12 ? "Доброе утро" : (hour < 18 ? "Добрый день" : "Добрый вечер");
             if (userRole === "mentor") { document.querySelectorAll(".mentor-only").forEach(el => el.classList.remove("hidden")); loadMyTasksForMentor(); } else { document.querySelectorAll(".mentor-only").forEach(el => el.classList.add("hidden")); }
@@ -173,7 +261,6 @@
     document.getElementById("loginForm").addEventListener("submit", async (e) => { e.preventDefault(); try { await auth.signInWithEmailAndPassword(document.getElementById("loginEmail").value, document.getElementById("loginPassword").value); showToast("Добро пожаловать!"); } catch(err) { document.getElementById("loginError").classList.remove("hidden"); document.getElementById("loginError").innerText = "Неверный email или пароль"; } });
     document.getElementById("logoutBtnBottom")?.addEventListener("click", () => auth.signOut());
     
-    // Кнопка "О платформе"
     const aboutBtn = document.getElementById("aboutPlatformBtn");
     const aboutModal = document.getElementById("aboutModal");
     const closeAboutBtn = document.getElementById("closeAboutBtn");
@@ -182,8 +269,10 @@
     if (aboutModal) aboutModal.addEventListener("click", (e) => { if (e.target === aboutModal) aboutModal.classList.add("hidden"); });
 
     function switchNav(tab) {
-        document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
-        document.getElementById(`${tab}Panel`).classList.remove("hidden");
+        document.querySelectorAll(".tab-content").forEach(el => { el.classList.add("hidden"); el.classList.remove("animate-fade-slide-up"); });
+        const newPanel = document.getElementById(`${tab}Panel`);
+        newPanel.classList.remove("hidden");
+        newPanel.classList.add("animate-fade-slide-up");
         document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
         document.querySelector(`[data-nav="${tab}"]`)?.classList.add("active");
         document.getElementById("greetingContainer").classList.toggle("hidden", tab !== "tasks");
@@ -193,18 +282,18 @@
 
     async function loadTasks() {
         const container = document.getElementById("tasksListContainer");
-        container.innerHTML = '<div class="text-center p-4">Загрузка...</div>';
+        container.innerHTML = '<div class="text-center p-4 animate-pulse">Загрузка...</div>';
         const q = await db.collection("tasks").where("published", "==", true).get();
         const tasks = [];
         q.forEach(doc => { const d = doc.data(); if (userRole === "student" && d.targetClass !== userClass) return; tasks.push({ id: doc.id, ...d }); });
-        if (tasks.length === 0) { container.innerHTML = '<div class="text-center text-gray-400">Нет заданий</div>'; return; }
+        if (tasks.length === 0) { container.innerHTML = '<div class="text-center text-gray-400 animate-fade-slide-up">Нет заданий</div>'; return; }
         container.innerHTML = "";
         for (const t of tasks) {
             const completed = completedTasksData.get(t.id);
             const pagesCount = normalizePages(t.pages).length;
             const card = document.createElement("div");
-            card.className = `bg-white rounded-xl shadow p-4 transition ${userRole === "mentor" ? 'mentor-view' : ''} ${completed ? 'task-card completed' : ''}`;
-            card.innerHTML = `<div class="font-bold text-lg">${escapeHtml(t.title)}</div><div class="text-sm text-gray-500 mt-1">Класс: ${t.targetClass} • Страниц: ${pagesCount}</div>${completed ? `<div class="text-green-600 text-xs mt-1 font-semibold"><i class="fas fa-check-circle"></i> Пройдено: ${completed.earnedPoints}/${completed.totalPoints} (${completed.percent}%)</div>` : ''}<button data-id="${t.id}" class="task-start mt-3 bg-indigo-50 text-indigo-700 font-semibold py-1.5 px-3 rounded-xl w-full hover:bg-indigo-100 transition">${userRole === "student" ? (completed ? "Просмотреть ответы" : "Начать") : "Просмотреть"}</button>`;
+            card.className = `bg-white rounded-xl shadow p-4 transition-all duration-300 transform hover:-translate-y-1 hover:shadow-lg ${userRole === "mentor" ? 'mentor-view' : ''} ${completed ? 'task-card completed' : ''}`;
+            card.innerHTML = `<div class="font-bold text-lg">${escapeHtml(t.title)}</div><div class="text-sm text-gray-500 mt-1">Класс: ${t.targetClass} • Страниц: ${pagesCount}</div>${completed ? `<div class="text-green-600 text-xs mt-1 font-semibold animate-pulse"><i class="fas fa-check-circle"></i> Пройдено: ${completed.earnedPoints}/${completed.totalPoints} (${completed.percent}%)</div>` : ''}<button data-id="${t.id}" class="task-start mt-3 bg-indigo-50 text-indigo-700 font-semibold py-1.5 px-3 rounded-xl w-full transition-all hover:bg-indigo-100 active:scale-95">${userRole === "student" ? (completed ? "Просмотреть ответы" : "Начать") : "Просмотреть"}</button>`;
             container.appendChild(card);
         }
         document.querySelectorAll(".task-start").forEach(btn => btn.addEventListener("click", async (e) => {
@@ -219,7 +308,14 @@
         }));
     }
 
-    async function openTaskForSolve() { isViewMode = false; currentPagesArray = normalizePages(currentTask.pages); currentPageAnswers = currentPagesArray.map(() => ({})); currentPage = 0; renderFullscreenTask(false); }
+    async function openTaskForSolve() { 
+        isViewMode = false; 
+        isCompletedAndSaved = false;
+        currentPagesArray = normalizePages(currentTask.pages); 
+        currentPageAnswers = currentPagesArray.map(() => ({})); 
+        currentPage = 0; 
+        renderFullscreenTask(false); 
+    }
     async function openStudentReview(taskId) { isViewMode = true; const saved = completedTasksData.get(taskId); if (saved && saved.studentAnswers) { currentPagesArray = normalizePages(currentTask.pages); currentPageAnswers = saved.studentAnswers; currentPage = 0; renderFullscreenTask(true); } else { showToast("Не удалось загрузить ответы", true); } }
     
     async function openTaskForMentor() {
@@ -247,32 +343,33 @@
 
     function renderFullscreenTask(isReviewMode) {
         const modal = document.getElementById("taskFullscreen");
+        const closeBtn = document.getElementById("closeTaskBtn");
+        if (!isReviewMode && !isCompletedAndSaved) {
+            closeBtn.disabled = true;
+        } else {
+            closeBtn.disabled = false;
+        }
+        
         document.getElementById("fsTaskTitle").innerText = currentTask.title;
         const pagesContainer = document.getElementById("fsPagesContainer");
         pagesContainer.innerHTML = "";
-        const completedPages = new Set();
-        if (!isReviewMode && currentPageAnswers) {
-            for (let i = 0; i < currentPagesArray.length; i++) {
-                const page = currentPagesArray[i]; const answers = currentPageAnswers[i] || {};
-                let allDone = true;
-                for (let j = 0; j < page.length; j++) { if (page[j].type !== 'text' && (!answers[j] || (page[j].type === 'choice' && answers[j].selected === undefined) || (page[j].type === 'textarea' && (!answers[j].value || answers[j].value.trim() === "")))) allDone = false; }
-                if (allDone) completedPages.add(i);
-            }
-        }
+        
         for (let i = 0; i < currentPagesArray.length; i++) {
             const div = document.createElement("div");
-            div.className = `page-indicator ${completedPages.has(i) ? 'completed' : ''} ${i === currentPage ? 'active' : ''}`;
+            let isPageCompleted = isCompletedAndSaved;
+            div.className = `page-indicator ${isPageCompleted ? 'completed' : ''} ${i === currentPage ? 'active' : ''} transition-all duration-200`;
             div.innerText = (i + 1).toString();
-            div.onclick = () => { if (!isReviewMode || (isReviewMode && i < currentPagesArray.length)) { currentPage = i; renderFullscreenTask(isReviewMode); } };
+            div.onclick = () => { if (!isReviewMode && !isCompletedAndSaved) { currentPage = i; renderFullscreenTask(isReviewMode); } };
             pagesContainer.appendChild(div);
         }
+        
         const content = document.getElementById("fsPageContent");
         const pageElements = currentPagesArray[currentPage] || [];
-        let html = `<div class="mb-4"><h3 class="text-lg font-bold">Страница ${currentPage + 1}</h3><p class="text-sm text-gray-500">${pageElements.length} заданий</p></div>`;
+        let html = `<div class="mb-4 animate-fade-slide-down"><h3 class="text-lg font-bold">Страница ${currentPage + 1}</h3><p class="text-sm text-gray-500">${pageElements.length} заданий</p></div>`;
         for (let i = 0; i < pageElements.length; i++) {
             const el = pageElements[i]; const ans = (currentPageAnswers[currentPage] || {})[i];
             html += `<div class="task-element-card" data-elem-index="${i}"><div class="font-semibold mb-2">Задание ${i + 1} <span class="text-xs text-gray-400">(${el.type === 'text' ? 'Инфо' : (el.type === 'choice' ? 'Выбор' : 'Текст')}, баллов: ${el.points})</span></div>`;
-            if (el.imageBase64) html += `<img src="${el.imageBase64}" class="modal-photo my-2 max-h-32 rounded cursor-pointer" onclick="window.showImagePopup('${el.imageBase64}')">`;
+            if (el.imageBase64) html += `<img src="${el.imageBase64}" class="modal-photo my-2 max-h-32 rounded cursor-pointer transition-transform hover:scale-105" onclick="window.showImagePopup('${el.imageBase64}')">`;
             if (el.type === 'text') html += `<div class="bg-gray-100 p-4 rounded-xl">${escapeHtml(el.content) || "Информация"}</div>`;
             else if (el.type === 'choice') {
                 html += `<div class="font-medium mb-2">${escapeHtml(el.content)}</div><div class="space-y-2">`;
@@ -282,8 +379,8 @@
                     let extraClass = "";
                     if (isReviewMode && selected) extraClass = selected ? (isCorrect ? 'correct-answer' : 'wrong-answer') : '';
                     if (isReviewMode && !selected && isCorrect) extraClass = 'correct-answer';
-                    html += `<div class="quiz-option p-3 rounded-xl flex items-center gap-3 ${selected ? 'selected' : ''} ${extraClass}" data-opt="${idx}" style="${isReviewMode ? 'cursor:default' : 'cursor:pointer'}">
-                        <div class="w-5 h-5 rounded-full border ${selected ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}"></div>
+                    html += `<div class="quiz-option p-3 rounded-xl flex items-center gap-3 transition-all duration-150 ${selected ? 'selected' : ''} ${extraClass}" data-opt="${idx}" style="${isReviewMode ? 'cursor:default' : 'cursor:pointer'}">
+                        <div class="w-5 h-5 rounded-full border transition-all ${selected ? 'bg-indigo-600 border-indigo-600 scale-110' : 'border-gray-300'}"></div>
                         <span>${escapeHtml(opt)} ${isReviewMode && isCorrect && !selected ? ' ✓ (правильный)' : ''}</span>
                     </div>`;
                 });
@@ -292,58 +389,25 @@
             else if (el.type === 'textarea') {
                 const val = ans ? ans.value : '';
                 const disabledAttr = isReviewMode ? 'readonly disabled' : '';
-                html += `<div class="font-medium mb-2">${escapeHtml(el.content)}</div><textarea class="textarea-ans w-full border rounded-xl p-3 mt-2" rows="3" placeholder="Напишите ответ..." data-elem-idx="${i}" ${disabledAttr}>${escapeHtml(val)}</textarea><div class="text-xs text-gray-400 mt-1">Баллов: ${el.points}</div>`;
+                html += `<div class="font-medium mb-2">${escapeHtml(el.content)}</div><textarea class="textarea-ans w-full border rounded-xl p-3 mt-2 transition-all focus:ring-2 focus:ring-indigo-400" rows="3" placeholder="Напишите ответ..." data-elem-idx="${i}" ${disabledAttr}>${escapeHtml(val)}</textarea><div class="text-xs text-gray-400 mt-1">Баллов: ${el.points}</div>`;
             }
             html += `</div>`;
         }
         
-        // Для наставника: финальная страница со списком учеников
-        if (userRole === "mentor" && isReviewMode && currentPage === currentPagesArray.length - 1) {
-            html += `<div class="mt-8 border-t pt-6"><h3 class="text-xl font-bold mb-4">📊 Результаты учеников</h3>`;
-            if (mentorStudentsList.length === 0) html += `<p class="text-gray-500">Пока никто не прошёл это задание</p>`;
-            else {
-                html += `<div class="space-y-2">`;
-                mentorStudentsList.forEach((student, idx) => {
-                    html += `<div class="student-result-row rounded-xl flex justify-between items-center" data-student-idx="${idx}">
-                        <div><span class="font-medium">${escapeHtml(student.displayName)}</span><div class="text-sm text-gray-500">${student.email} • ${student.earned}/${student.total} (${student.percent}%)</div></div>
-                        <i class="fas fa-chevron-right text-gray-400"></i>
-                    </div>`;
-                });
-                html += `</div>`;
-            }
-            html += `</div>`;
-        }
-        
-        // Для ученика: финальная страница с итогами
-        if (userRole === "student" && !isReviewMode && currentPage === currentPagesArray.length - 1 && !isViewMode) {
-            let totalPoints = 0, earnedPoints = 0;
+        if (!isReviewMode && !isCompletedAndSaved && currentPage === currentPagesArray.length - 1) {
+            let allPagesCompleted = true;
             for (let p = 0; p < currentPagesArray.length; p++) {
-                const page = currentPagesArray[p]; const pageAns = currentPageAnswers[p] || {};
+                const page = currentPagesArray[p];
+                const pageAns = currentPageAnswers[p] || {};
                 for (let i = 0; i < page.length; i++) {
-                    const el = page[i]; if (el.type === 'text') continue;
-                    totalPoints += el.points; const ans = pageAns[i];
-                    if (el.type === 'choice' && ans && ans.selected !== undefined && el.correctAnswer && el.correctAnswer.includes(ans.selected)) earnedPoints += el.points;
-                    else if (el.type === 'textarea' && ans && ans.value && ans.value.trim().length > 0) earnedPoints += el.points;
+                    const el = page[i];
+                    if (el.type === 'text') continue;
+                    const ans = pageAns[i];
+                    if (el.type === 'choice' && (!ans || ans.selected === undefined)) allPagesCompleted = false;
+                    if (el.type === 'textarea' && (!ans || !ans.value || ans.value.trim() === "")) allPagesCompleted = false;
                 }
             }
-            const percent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
-            html = `<div class="text-center py-10">
-                <div class="text-6xl mb-4">🎉</div>
-                <h2 class="text-2xl font-bold mb-2">Задание завершено!</h2>
-                <div class="bg-indigo-50 rounded-xl p-6 max-w-md mx-auto">
-                    <p class="text-lg">Правильно выполнено: <span class="font-bold text-green-600">${earnedPoints}</span> из <span class="font-bold">${totalPoints}</span></p>
-                    <p class="text-3xl font-bold mt-2">${percent}%</p>
-                </div>
-                <button id="finalSaveResultBtn" class="mt-6 bg-green-600 text-white px-6 py-2 rounded-xl font-bold">Сохранить результат</button>
-            </div>`;
-        }
-        
-        content.innerHTML = html;
-        
-        // Кнопка сохранения для ученика
-        if (!isReviewMode && userRole === "student" && currentPage === currentPagesArray.length - 1 && !isViewMode) {
-            const saveBtn = document.getElementById("finalSaveResultBtn");
-            if (saveBtn) saveBtn.onclick = async () => {
+            if (allPagesCompleted) {
                 let totalPoints = 0, earnedPoints = 0;
                 for (let p = 0; p < currentPagesArray.length; p++) {
                     const page = currentPagesArray[p]; const pageAns = currentPageAnswers[p] || {};
@@ -355,22 +419,37 @@
                     }
                 }
                 const percent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
-                const studentAnswersCopy = JSON.parse(JSON.stringify(currentPageAnswers));
-                await db.collection("results").add({ taskId: currentTask.id, taskTitle: currentTask.title, studentId: currentUserObj.uid, studentEmail: currentUserObj.email, earnedPoints, totalPoints, percent, studentAnswers: studentAnswersCopy, completedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                const snap = await db.collection("results").where("studentId", "==", currentUserObj.uid).get();
-                completedTasksData.clear(); snap.forEach(d => completedTasksData.set(d.data().taskId, d.data()));
-                showToast(`Результат сохранён! ${earnedPoints}/${totalPoints} (${percent}%)`);
-                document.getElementById("taskFullscreen").classList.add("hidden");
-                loadTasks();
-            };
+                html = `<div class="text-center py-10 animate-scale-in">
+                    <div class="text-6xl mb-4 animate-bounce">🎉</div>
+                    <h2 class="text-2xl font-bold mb-2">Задание завершено!</h2>
+                    <div class="bg-indigo-50 rounded-xl p-6 max-w-md mx-auto animate-fade-slide-up">
+                        <p class="text-lg">Правильно выполнено: <span class="font-bold text-green-600">${earnedPoints}</span> из <span class="font-bold">${totalPoints}</span></p>
+                        <p class="text-3xl font-bold mt-2">${percent}%</p>
+                    </div>
+                    <button id="finalSaveResultBtn" class="mt-6 bg-green-600 text-white px-6 py-2 rounded-xl font-bold transition-all hover:bg-green-700 active:scale-95 animate-pulse">Сохранить результат</button>
+                </div>`;
+            }
         }
         
-        if (!isReviewMode && userRole !== "mentor") {
-            document.querySelectorAll(".quiz-option").forEach(opt => { opt.addEventListener("click", () => { const selectedIdx = parseInt(opt.dataset.opt); const taskCard = opt.closest('.task-element-card'); const elemIdx = parseInt(taskCard.dataset.elemIndex); if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; currentPageAnswers[currentPage][elemIdx] = { type: 'choice', selected: selectedIdx }; renderFullscreenTask(false); }); });
-            document.querySelectorAll(".textarea-ans").forEach(ta => { ta.addEventListener("input", (e) => { const elemIdx = parseInt(ta.dataset.elemIdx); if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; currentPageAnswers[currentPage][elemIdx] = { type: 'textarea', value: e.target.value }; }); });
+        content.innerHTML = html;
+        
+        if (!isReviewMode && !isCompletedAndSaved) {
+            document.querySelectorAll(".quiz-option").forEach(opt => { opt.addEventListener("click", (e) => { 
+                addRippleEffect(opt, e);
+                const selectedIdx = parseInt(opt.dataset.opt); 
+                const taskCard = opt.closest('.task-element-card'); 
+                const elemIdx = parseInt(taskCard.dataset.elemIndex); 
+                if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; 
+                currentPageAnswers[currentPage][elemIdx] = { type: 'choice', selected: selectedIdx }; 
+                renderFullscreenTask(false); 
+            }); });
+            document.querySelectorAll(".textarea-ans").forEach(ta => { ta.addEventListener("input", (e) => { 
+                const elemIdx = parseInt(ta.dataset.elemIdx); 
+                if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; 
+                currentPageAnswers[currentPage][elemIdx] = { type: 'textarea', value: e.target.value }; 
+            }); });
         }
         
-        // Клики по ученикам для наставника
         if (userRole === "mentor" && isReviewMode) {
             document.querySelectorAll('.student-result-row').forEach(row => {
                 row.addEventListener('click', () => {
@@ -387,79 +466,208 @@
         }
         
         const prevBtn = document.getElementById("fsPrevPage"), nextBtn = document.getElementById("fsNextPage"), finishBtn = document.getElementById("fsFinishBtn"), pageCounter = document.getElementById("fsPageCounter");
-        prevBtn.disabled = (currentPage === 0); prevBtn.onclick = () => { if (currentPage > 0) { currentPage--; renderFullscreenTask(isReviewMode); } };
+        prevBtn.disabled = (currentPage === 0 || isCompletedAndSaved); 
+        prevBtn.onclick = () => { if (currentPage > 0 && !isCompletedAndSaved) { currentPage--; renderFullscreenTask(isReviewMode); } };
         pageCounter.innerText = `${currentPage + 1} / ${currentPagesArray.length}`;
         
-        if (userRole === "student" && !isReviewMode && currentPage === currentPagesArray.length - 1) {
+        if (isCompletedAndSaved) {
             nextBtn.classList.add("hidden"); finishBtn.classList.add("hidden");
         } else if (currentPage === currentPagesArray.length - 1) {
-            nextBtn.classList.add("hidden"); finishBtn.classList.remove("hidden");
-            if (!isReviewMode && userRole === "student") finishBtn.onclick = () => { renderFullscreenTask(false); };
-            else finishBtn.onclick = () => modal.classList.add("hidden");
+            nextBtn.classList.add("hidden"); 
+            finishBtn.classList.remove("hidden");
+            finishBtn.onclick = () => { renderFullscreenTask(false); };
         } else {
             nextBtn.classList.remove("hidden"); finishBtn.classList.add("hidden");
-            nextBtn.onclick = () => { if (currentPage < currentPagesArray.length - 1) { currentPage++; renderFullscreenTask(isReviewMode); } };
+            nextBtn.onclick = () => { if (currentPage < currentPagesArray.length - 1 && !isCompletedAndSaved) { currentPage++; renderFullscreenTask(isReviewMode); } };
         }
-        document.getElementById("closeTaskBtn").onclick = () => modal.classList.add("hidden");
+        
+        const saveBtn = document.getElementById("finalSaveResultBtn");
+        if (saveBtn) {
+            saveBtn.onclick = async () => {
+                let totalPoints = 0, earnedPoints = 0;
+                for (let p = 0; p < currentPagesArray.length; p++) {
+                    const page = currentPagesArray[p]; const pageAns = currentPageAnswers[p] || {};
+                    for (let i = 0; i < page.length; i++) {
+                        const el = page[i]; if (el.type === 'text') continue;
+                        totalPoints += el.points; const ans = pageAns[i];
+                        if (el.type === 'choice' && ans && ans.selected !== undefined && el.correctAnswer && el.correctAnswer.includes(ans.selected)) earnedPoints += el.points;
+                        else if (el.type === 'textarea' && ans && ans.value && ans.value.trim().length > 0) earnedPoints += el.points;
+                    }
+                }
+                const percent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+                const studentAnswersCopy = JSON.parse(JSON.stringify(currentPageAnswers));
+                await db.collection("results").add({ taskId: currentTask.id, taskTitle: currentTask.title, studentId: currentUserObj.uid, studentEmail: currentUserObj.email, earnedPoints, totalPoints, percent, studentAnswers: studentAnswersCopy, completedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                const snap = await db.collection("results").where("studentId", "==", currentUserObj.uid).get();
+                completedTasksData.clear(); snap.forEach(d => completedTasksData.set(d.data().taskId, d.data()));
+                isCompletedAndSaved = true;
+                showToast(`Результат сохранён! ${earnedPoints}/${totalPoints} (${percent}%)`);
+                document.getElementById("taskFullscreen").classList.add("hidden");
+                loadTasks();
+            };
+        }
+        
+        document.getElementById("closeTaskBtn").onclick = () => { if (!isReviewMode && !isCompletedAndSaved) return; modal.classList.add("hidden"); };
         modal.classList.remove("hidden");
     }
 
-    window.showImagePopup = (src) => { const popup = document.createElement('div'); popup.className = 'image-popup animate-fade-slide'; popup.innerHTML = `<img src="${src}"><div class="absolute top-5 right-5 text-white text-3xl cursor-pointer">&times;</div>`; popup.addEventListener('click', (e) => { if (e.target === popup || e.target.tagName === 'DIV') popup.remove(); }); document.body.appendChild(popup); };
+    window.showImagePopup = (src) => { const popup = document.createElement('div'); popup.className = 'image-popup'; popup.innerHTML = `<img src="${src}"><div class="absolute top-5 right-5 text-white text-3xl cursor-pointer hover:scale-110 transition-transform">&times;</div>`; popup.addEventListener('click', (e) => { if (e.target === popup || e.target.tagName === 'DIV') popup.remove(); }); document.body.appendChild(popup); };
 
     // КОНСТРУКТОР
     let pagesStore = [[]];
+    
     function renderConstructorUI() {
         const container = document.getElementById("pagesContainer"); if (!container) return;
         container.innerHTML = "";
         pagesStore.forEach((page, pageIdx) => {
-            const pageDiv = document.createElement("div"); pageDiv.className = "border-2 border-indigo-200 rounded-xl p-4 bg-white mb-4";
-            pageDiv.innerHTML = `<div class="flex justify-between items-center mb-3"><span class="font-bold text-indigo-700">Страница ${pageIdx + 1}</span><button class="delete-page text-red-500 text-sm">Удалить</button></div><div id="page-${pageIdx}-elements" class="space-y-3 mb-3"></div><div class="flex gap-2 mt-2 flex-wrap"><button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm" data-type="text"><i class="fas fa-paragraph mr-1"></i> Текст</button><button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm" data-type="choice"><i class="fas fa-check-circle mr-1"></i> Выбор</button><button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm" data-type="textarea"><i class="fas fa-edit mr-1"></i> Текст</button></div>`;
+            const pageDiv = document.createElement("div"); pageDiv.className = "border-2 border-indigo-200 rounded-xl p-4 bg-white mb-4 transition-all hover:shadow-md";
+            pageDiv.innerHTML = `<div class="flex justify-between items-center mb-3"><span class="font-bold text-indigo-700">Страница ${pageIdx + 1}</span><button class="delete-page text-red-500 text-sm transition-all hover:scale-110">Удалить страницу</button></div>
+            <div id="page-${pageIdx}-elements" class="space-y-3 mb-3"></div>
+            <div class="flex gap-2 mt-2 flex-wrap">
+                <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm transition-all hover:bg-indigo-100 active:scale-95" data-type="text"><i class="fas fa-paragraph mr-1"></i> Текст</button>
+                <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm transition-all hover:bg-indigo-100 active:scale-95" data-type="choice"><i class="fas fa-check-circle mr-1"></i> Выбор ответа</button>
+                <button class="add-elem-btn bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-sm transition-all hover:bg-indigo-100 active:scale-95" data-type="textarea"><i class="fas fa-edit mr-1"></i> Свободный ответ</button>
+            </div>`;
             container.appendChild(pageDiv);
+            
             const elementsContainer = pageDiv.querySelector(`#page-${pageIdx}-elements`);
+            
             function renderElements() {
                 elementsContainer.innerHTML = "";
                 pagesStore[pageIdx].forEach((el, elemIdx) => {
-                    const elemCard = document.createElement("div"); elemCard.className = "bg-gray-50 rounded-lg p-3 border";
-                    elemCard.innerHTML = `<div class="flex justify-between items-center mb-2"><span class="font-medium">${el.type === 'text' ? '📄 Текст' : (el.type === 'choice' ? '✓ Выбор' : '✏️ Текст')}</span><button class="delete-elem text-red-500 text-sm">Удалить</button></div><div class="mb-2"><label class="text-sm font-medium">Баллы:</label><input class="elem-points w-24 border rounded-lg p-1 ml-2 text-sm" type="number" value="${el.points || (el.type === 'text' ? 0 : 1)}" min="0"></div><textarea class="elem-content w-full border rounded-lg p-2 text-sm mb-2" rows="2" placeholder="Текст...">${escapeHtml(el.content || '')}</textarea>`;
-                    if (el.type === 'choice') elemCard.innerHTML += `<div class="mt-2"><label class="text-sm font-medium">Варианты:</label><div class="options-list mt-1 space-y-1"></div><button class="add-option-btn text-indigo-600 text-sm mt-1"><i class="fas fa-plus mr-1"></i> Добавить вариант</button></div><div class="mt-2"><label class="text-sm font-medium">Правильный ответ:</label><select class="elem-correct border rounded-lg p-1 ml-2 text-sm"></select></div>`;
-                    elementsContainer.appendChild(elemCard);
-                    const contentInput = elemCard.querySelector('.elem-content'); const pointsInput = elemCard.querySelector('.elem-points');
-                    contentInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].content = e.target.value; });
-                    pointsInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].points = parseInt(e.target.value) || 0; });
+                    const elemCard = document.createElement("div"); elemCard.className = "bg-gray-50 rounded-lg p-3 border mb-3 transition-all hover:shadow-sm";
+                    elemCard.innerHTML = `
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="font-medium">${el.type === 'text' ? '📄 Текст' : (el.type === 'choice' ? '✓ Выбор ответа' : '✏️ Свободный ответ')}</span>
+                            <button class="delete-elem text-red-500 text-sm transition-all hover:scale-110">Удалить</button>
+                        </div>
+                        <div class="mb-2">
+                            <label class="text-sm font-medium">Баллы:</label>
+                            <input class="elem-points w-24 border rounded-lg p-1 ml-2 text-sm transition-all focus:ring-2 focus:ring-indigo-400" type="number" value="${el.points || (el.type === 'text' ? 0 : 1)}" min="0" step="1">
+                        </div>
+                        <textarea class="elem-content w-full border rounded-lg p-2 text-sm mb-2 transition-all focus:ring-2 focus:ring-indigo-400" rows="2" placeholder="Текст задания...">${escapeHtml(el.content || '')}</textarea>
+                    `;
+                    
                     if (el.type === 'choice') {
-                        if (!el.options) el.options = ["Вариант 1"]; if (el.correctIndex === undefined) el.correctIndex = 0;
-                        const optionsList = elemCard.querySelector('.options-list'); const correctSelect = elemCard.querySelector('.elem-correct');
+                        elemCard.innerHTML += `
+                            <div class="mt-2">
+                                <label class="text-sm font-medium">Варианты ответов:</label>
+                                <div class="options-list mt-1 space-y-1"></div>
+                                <button class="add-option-btn text-indigo-600 text-sm mt-1 transition-all hover:text-indigo-800"><i class="fas fa-plus mr-1"></i> Добавить вариант</button>
+                            </div>
+                            <div class="mt-2">
+                                <label class="text-sm font-medium">Правильный ответ (номер):</label>
+                                <select class="elem-correct border rounded-lg p-1 ml-2 text-sm transition-all focus:ring-2 focus:ring-indigo-400"></select>
+                            </div>
+                        `;
+                    }
+                    
+                    if (el.imageBase64) {
+                        elemCard.innerHTML += `
+                            <div class="photo-preview-container mt-2">
+                                <img src="${el.imageBase64}" class="preview-img max-h-20 rounded cursor-pointer transition-transform hover:scale-105">
+                                <div class="remove-photo-btn transition-all hover:scale-110" data-idx="${elemIdx}">✖</div>
+                            </div>
+                        `;
+                    }
+                    elemCard.innerHTML += `
+                        <div class="mt-2">
+                            <button class="add-photo-btn text-indigo-600 text-sm transition-all hover:text-indigo-800"><i class="fas fa-camera mr-1"></i> Добавить изображение</button>
+                            <input type="file" accept="image/*" class="photo-file hidden">
+                        </div>
+                    `;
+                    
+                    elementsContainer.appendChild(elemCard);
+                    
+                    const contentInput = elemCard.querySelector('.elem-content');
+                    const pointsInput = elemCard.querySelector('.elem-points');
+                    if (contentInput) contentInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].content = e.target.value; });
+                    if (pointsInput) pointsInput.addEventListener('input', (e) => { pagesStore[pageIdx][elemIdx].points = parseInt(e.target.value) || 0; });
+                    
+                    if (el.type === 'choice') {
+                        if (!el.options) el.options = ["Вариант 1"];
+                        if (el.correctIndex === undefined) el.correctIndex = 0;
+                        const optionsList = elemCard.querySelector('.options-list');
+                        const correctSelect = elemCard.querySelector('.elem-correct');
                         function renderOptions() {
                             optionsList.innerHTML = ''; correctSelect.innerHTML = '';
-                            el.options.forEach((opt, optIdx) => { const optDiv = document.createElement('div'); optDiv.className = 'option-row'; optDiv.innerHTML = `<input type="text" class="flex-1 border rounded-lg p-1 text-sm option-text" value="${escapeHtml(opt)}"><button class="remove-option text-red-400 text-sm">✖</button>`; optionsList.appendChild(optDiv); optDiv.querySelector('.option-text').addEventListener('input', (e) => { el.options[optIdx] = e.target.value; renderOptions(); }); optDiv.querySelector('.remove-option').onclick = () => { el.options.splice(optIdx, 1); if (el.correctIndex >= el.options.length) el.correctIndex = 0; renderOptions(); }; const option = document.createElement('option'); option.value = optIdx; option.textContent = `${optIdx + 1}. ${opt.substring(0, 40)}`; if (el.correctIndex === optIdx) option.selected = true; correctSelect.appendChild(option); });
+                            el.options.forEach((opt, optIdx) => {
+                                const optDiv = document.createElement('div'); optDiv.className = 'option-row';
+                                optDiv.innerHTML = `<input type="text" class="flex-1 border rounded-lg p-1 text-sm option-text transition-all focus:ring-2 focus:ring-indigo-400" value="${escapeHtml(opt)}"><button class="remove-option text-red-400 text-sm transition-all hover:scale-110">✖</button>`;
+                                optionsList.appendChild(optDiv);
+                                optDiv.querySelector('.option-text').addEventListener('input', (e) => { el.options[optIdx] = e.target.value; renderOptions(); });
+                                optDiv.querySelector('.remove-option').onclick = () => { el.options.splice(optIdx, 1); if (el.correctIndex >= el.options.length) el.correctIndex = 0; renderOptions(); };
+                                const option = document.createElement('option');
+                                option.value = optIdx;
+                                option.textContent = `${optIdx + 1}. ${opt.substring(0, 40)}`;
+                                if (el.correctIndex === optIdx) option.selected = true;
+                                correctSelect.appendChild(option);
+                            });
                             correctSelect.onchange = (e) => { el.correctIndex = parseInt(e.target.value); };
                         }
-                        renderOptions(); elemCard.querySelector('.add-option-btn').onclick = () => { el.options.push(`Новый вариант ${el.options.length + 1}`); renderOptions(); };
+                        renderOptions();
+                        elemCard.querySelector('.add-option-btn').onclick = () => { el.options.push(`Новый вариант ${el.options.length + 1}`); renderOptions(); };
                     }
+                    
+                    const addPhotoBtn = elemCard.querySelector('.add-photo-btn');
+                    const fileInput = elemCard.querySelector('.photo-file');
+                    addPhotoBtn.onclick = () => fileInput.click();
+                    fileInput.onchange = (ev) => {
+                        const file = ev.target.files[0];
+                        if (file) {
+                            const reader = new FileReader();
+                            reader.onload = (re) => { pagesStore[pageIdx][elemIdx].imageBase64 = re.target.result; renderConstructorUI(); };
+                            reader.readAsDataURL(file);
+                        }
+                    };
+                    const removePhotoBtn = elemCard.querySelector('.remove-photo-btn');
+                    if (removePhotoBtn) removePhotoBtn.onclick = () => { pagesStore[pageIdx][elemIdx].imageBase64 = null; renderConstructorUI(); };
+                    const previewImg = elemCard.querySelector('.preview-img');
+                    if (previewImg) previewImg.onclick = () => window.showImagePopup(previewImg.src);
                     elemCard.querySelector('.delete-elem').onclick = () => { pagesStore[pageIdx].splice(elemIdx, 1); renderElements(); };
                 });
             }
             renderElements();
             pageDiv.querySelector('.delete-page').onclick = () => { pagesStore.splice(pageIdx, 1); renderConstructorUI(); };
-            pageDiv.querySelectorAll('.add-elem-btn').forEach(btn => { btn.onclick = () => { const type = btn.dataset.type; const newElem = { type, content: "", points: type === 'text' ? 0 : 1 }; if (type === 'choice') newElem.options = ["Вариант 1"], newElem.correctIndex = 0; pagesStore[pageIdx].push(newElem); renderConstructorUI(); }; });
+            pageDiv.querySelectorAll('.add-elem-btn').forEach(btn => {
+                btn.onclick = () => {
+                    const type = btn.dataset.type;
+                    const newElem = { type: type, content: "", points: type === 'text' ? 0 : 1, imageBase64: null };
+                    if (type === 'choice') newElem.options = ["Вариант 1"], newElem.correctIndex = 0;
+                    pagesStore[pageIdx].push(newElem);
+                    renderConstructorUI();
+                };
+            });
         });
     }
+    
     document.getElementById("addPageBtn")?.addEventListener("click", () => { pagesStore.push([]); renderConstructorUI(); });
+    
     document.getElementById("publishTaskBtn")?.addEventListener("click", async () => {
         const title = document.getElementById("taskName").value.trim(), targetClass = document.getElementById("taskClass").value.trim();
         if (!title || !targetClass) { showToast("Заполните название и класс", true); return; }
         if (pagesStore.length === 0 || pagesStore.every(p => p.length === 0)) { showToast("Добавьте хотя бы одну страницу", true); return; }
-        const pagesObj = {}; for (let i = 0; i < pagesStore.length; i++) pagesObj[i] = pagesStore[i].map(el => { const base = { type: el.type, points: Number(el.points) || (el.type === 'text' ? 0 : 1), content: el.content || "" }; if (el.type === 'choice') base.options = el.options || ["Вариант 1"], base.correctAnswer = [el.correctIndex || 0]; return base; });
+        const pagesObj = {}; 
+        for (let i = 0; i < pagesStore.length; i++) {
+            pagesObj[i] = pagesStore[i].map(el => { 
+                const base = { type: el.type, points: Number(el.points) || (el.type === 'text' ? 0 : 1), content: el.content || "" };
+                if (el.type === 'choice') base.options = el.options || ["Вариант 1"], base.correctAnswer = [el.correctIndex || 0];
+                if (el.imageBase64) base.imageBase64 = el.imageBase64;
+                return base;
+            });
+        }
         try { await db.collection("tasks").add({ title, targetClass, pages: pagesObj, published: true, createdBy: currentUserObj.uid, createdAt: firebase.firestore.FieldValue.serverTimestamp() }); showToast("Опубликовано!"); pagesStore = [[]]; renderConstructorUI(); document.getElementById("taskName").value = ""; document.getElementById("taskClass").value = ""; loadMyTasksForMentor(); loadTasks(); } catch(err) { showToast("Ошибка: " + err.message, true); }
     });
+    
     async function loadMyTasksForMentor() {
         if (userRole !== "mentor") return;
         const snap = await db.collection("tasks").where("createdBy", "==", currentUserObj.uid).get();
         const cont = document.getElementById("myPublishedTasks"); cont.innerHTML = "";
-        for (const doc of snap.docs) { const taskData = doc.data(); const resultsSnap = await db.collection("results").where("taskId", "==", doc.id).get(); cont.innerHTML += `<div class="border-b py-2 flex justify-between items-center"><div><span class="font-medium">${escapeHtml(taskData.title)}</span><span class="text-xs text-gray-400 ml-2">(${taskData.targetClass})</span><div class="text-xs text-indigo-500">${resultsSnap.size} учеников</div></div><button data-id="${doc.id}" class="delMine text-red-500 text-sm">Удалить</button></div>`; }
-        document.querySelectorAll(".delMine").forEach(btn => btn.addEventListener("click", async (e) => { if (confirm("Удалить?")) { await db.collection("tasks").doc(btn.dataset.id).delete(); loadMyTasksForMentor(); loadTasks(); showToast("Удалено"); } }));
+        for (const doc of snap.docs) { const taskData = doc.data(); const resultsSnap = await db.collection("results").where("taskId", "==", doc.id).get(); cont.innerHTML += `<div class="border-b py-2 flex justify-between items-center transition-all hover:bg-gray-50"><div><span class="font-medium">${escapeHtml(taskData.title)}</span><span class="text-xs text-gray-400 ml-2">(${taskData.targetClass})</span><div class="text-xs text-indigo-500">${resultsSnap.size} учеников</div></div><button data-id="${doc.id}" class="delMine text-red-500 text-sm transition-all hover:scale-110">Удалить</button></div>`; }
+        document.querySelectorAll(".delMine").forEach(btn => btn.addEventListener("click", async (e) => { if (confirm("Удалить задание?")) { await db.collection("tasks").doc(btn.dataset.id).delete(); loadMyTasksForMentor(); loadTasks(); showToast("Удалено"); } }));
     }
+    
     function escapeHtml(s) { if (!s) return ''; return s.replace(/[&<>]/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[m])); }
+    
     if (document.getElementById("pagesContainer")) { pagesStore = [[]]; renderConstructorUI(); }
 </script>
 </body>
