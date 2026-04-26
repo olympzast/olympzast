@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Олимпиадская застава | Сервис для наставников</title>
+    <title>Казбэк Learn</title>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -38,6 +38,7 @@
         .wrong-answer { color: #ef4444; background: #fef2f2; }
         .student-result-row { border-bottom: 1px solid #e5e7eb; padding: 12px; cursor: pointer; transition: background 0.2s; }
         .student-result-row:hover { background: #f3f4f6; }
+        .fullscreen-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 1000; overflow-y: auto; }
     </style>
 </head>
 <body class="bg-gray-50 font-sans pb-20">
@@ -88,8 +89,9 @@
                 <h2 id="profileName" class="text-xl font-bold"></h2>
                 <p id="profileEmail" class="text-gray-500 text-sm mt-1"></p>
                 <p class="mt-2"><span class="font-semibold">Роль:</span> <span id="profileRole"></span> &nbsp;|&nbsp; <span class="font-semibold">Класс:</span> <span id="profileClass"></span></p>
-                <button id="logoutBtnBottom" class="mt-6 bg-red-500 text-white py-2 px-5 rounded-xl w-full font-bold">Выйти</button>
-                <div class="mt-6 text-xs text-gray-400 border-t pt-4">Сайт создан в образовательных целях. Реальные оценки не выставляются.</div>
+                <button id="aboutPlatformBtn" class="mt-4 bg-indigo-100 text-indigo-700 py-2 px-5 rounded-xl w-full font-semibold">О платформе</button>
+                <button id="logoutBtnBottom" class="mt-3 bg-red-500 text-white py-2 px-5 rounded-xl w-full font-bold">Выйти</button>
+                <div class="mt-6 text-xs text-gray-400 border-t pt-4">Сайт создан в развлекательных и юмористических целях и не несёт негативный характер. Данной организации не существует.</div>
             </div>
         </div>
     </div>
@@ -100,7 +102,20 @@
     </div>
 </div>
 
-<!-- ПОЛНОЭКРАННОЕ ОКНО ЗАДАНИЯ (универсальное) -->
+<!-- МОДАЛКА "О ПЛАТФОРМЕ" -->
+<div id="aboutModal" class="fixed inset-0 bg-white z-50 hidden flex flex-col">
+    <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
+        <h2 class="font-bold text-xl">О «Казбэк Learn»</h2>
+        <button id="closeAboutBtn" class="text-gray-500 text-2xl">&times;</button>
+    </div>
+    <div class="flex-1 overflow-auto p-6">
+        <div class="max-w-2xl mx-auto">
+            <p class="text-lg text-gray-700 leading-relaxed">Казбэк Learn — это образовательная платформа для учителей и учеников, где наставники (учителя) могут выдавать своим ученикам задания и различные курсы. 100% всех учителей в России выбирают нас за качество нашей платформы, удобство в использовании и интуитивный интерфейс.</p>
+        </div>
+    </div>
+</div>
+
+<!-- ПОЛНОЭКРАННОЕ ОКНО ЗАДАНИЯ -->
 <div id="taskFullscreen" class="fixed inset-0 bg-white z-50 hidden flex flex-col">
     <div class="sticky top-0 bg-white border-b px-4 py-3 flex justify-between items-center">
         <button id="closeTaskBtn" class="text-gray-500 text-2xl">&times;</button>
@@ -124,14 +139,18 @@
 
     let currentUserObj = null, userRole = null, userClass = null, userDisplayName = "Пользователь";
     let currentTask = null, currentPagesArray = [], currentPageAnswers = [], currentPage = 0, isViewMode = false;
-    let completedTasksData = new Map(); // для ученика
-    let mentorStudentsList = []; // для наставника: список {id, email, answers, earned, total, percent}
+    let completedTasksData = new Map();
+    let mentorStudentsList = [];
 
     function showToast(msg, isErr = false) { let t = document.createElement('div'); t.className = 'toast-notify'; t.innerHTML = `<i class="fas ${isErr ? 'fa-exclamation-triangle' : 'fa-check-circle'} mr-2"></i>${msg}`; t.style.background = isErr ? '#b91c1c' : '#1e293b'; document.body.appendChild(t); setTimeout(() => t.remove(), 2800); }
 
     function normalizePages(pages) { if (!pages) return []; if (Array.isArray(pages)) return pages; if (typeof pages === 'object') { const arr = []; for (let i = 0; i < Object.keys(pages).length; i++) if (pages[i]) arr.push(pages[i]); return arr; } return []; }
 
-    async function loadUserRole(uid) { try { const doc = await db.collection("users").doc(uid).get(); if (doc.exists) { userRole = doc.data().role; userClass = doc.data().class || ""; userDisplayName = doc.data().displayName || doc.data().email?.split('@')[0] || "Ученик"; return true; } else { showToast("Роль не назначена", true); return false; } } catch(e) { showToast("Ошибка", true); return false; } }
+    async function getUserDisplayName(uid) {
+        try { const doc = await db.collection("users").doc(uid).get(); return doc.exists ? (doc.data().displayName || doc.data().email?.split('@')[0] || "Ученик") : "Ученик"; } catch(e) { return "Ученик"; }
+    }
+
+    async function loadUserRole(uid) { try { const doc = await db.collection("users").doc(uid).get(); if (doc.exists) { userRole = doc.data().role; userClass = doc.data().class || ""; userDisplayName = doc.data().displayName || doc.data().email?.split('@')[0] || "Пользователь"; return true; } else { showToast("Роль не назначена", true); return false; } } catch(e) { showToast("Ошибка", true); return false; } }
 
     auth.onAuthStateChanged(async (user) => {
         if (user) {
@@ -150,6 +169,8 @@
 
     document.getElementById("loginForm").addEventListener("submit", async (e) => { e.preventDefault(); try { await auth.signInWithEmailAndPassword(document.getElementById("loginEmail").value, document.getElementById("loginPassword").value); showToast("Добро пожаловать!"); } catch(err) { document.getElementById("loginError").classList.remove("hidden"); document.getElementById("loginError").innerText = "Неверный email или пароль"; } });
     document.getElementById("logoutBtnBottom")?.addEventListener("click", () => auth.signOut());
+    document.getElementById("aboutPlatformBtn")?.addEventListener("click", () => document.getElementById("aboutModal").classList.remove("hidden"));
+    document.getElementById("closeAboutBtn")?.addEventListener("click", () => document.getElementById("aboutModal").classList.add("hidden"));
 
     function switchNav(tab) {
         document.querySelectorAll(".tab-content").forEach(el => el.classList.add("hidden"));
@@ -173,7 +194,6 @@
             const completed = completedTasksData.get(t.id);
             const pagesCount = normalizePages(t.pages).length;
             const card = document.createElement("div");
-            // Для наставника задания серые
             card.className = `bg-white rounded-xl shadow p-4 transition ${userRole === "mentor" ? 'mentor-view' : ''} ${completed ? 'task-card completed' : ''}`;
             card.innerHTML = `<div class="font-bold text-lg">${escapeHtml(t.title)}</div><div class="text-sm text-gray-500 mt-1">Класс: ${t.targetClass} • Страниц: ${pagesCount}</div>${completed ? `<div class="text-green-600 text-xs mt-1 font-semibold"><i class="fas fa-check-circle"></i> Пройдено: ${completed.earnedPoints}/${completed.totalPoints} (${completed.percent}%)</div>` : ''}<button data-id="${t.id}" class="task-start mt-3 bg-indigo-50 text-indigo-700 font-semibold py-1.5 px-3 rounded-xl w-full hover:bg-indigo-100 transition">${userRole === "student" ? (completed ? "Просмотреть ответы" : "Начать") : "Просмотреть"}</button>`;
             container.appendChild(card);
@@ -196,15 +216,16 @@
     async function openTaskForMentor() {
         isViewMode = true;
         currentPagesArray = normalizePages(currentTask.pages);
-        // Загружаем всех учеников, прошедших это задание
         const resultsSnap = await db.collection("results").where("taskId", "==", currentTask.id).get();
         mentorStudentsList = [];
         for (const doc of resultsSnap.docs) {
             const data = doc.data();
+            const studentName = await getUserDisplayName(data.studentId);
             mentorStudentsList.push({
                 id: doc.id,
                 studentId: data.studentId,
                 email: data.studentEmail,
+                displayName: studentName,
                 answers: data.studentAnswers,
                 earned: data.earnedPoints,
                 total: data.totalPoints,
@@ -267,15 +288,15 @@
             html += `</div>`;
         }
         
-        // ДЛЯ НАСТАВНИКА: финальная страница со списком учеников
+        // Для наставника: финальная страница со списком учеников (displayName)
         if (userRole === "mentor" && isReviewMode && currentPage === currentPagesArray.length - 1) {
             html += `<div class="mt-8 border-t pt-6"><h3 class="text-xl font-bold mb-4">📊 Результаты учеников</h3>`;
             if (mentorStudentsList.length === 0) html += `<p class="text-gray-500">Пока никто не прошёл это задание</p>`;
             else {
                 html += `<div class="space-y-2">`;
-                mentorStudentsList.forEach(student => {
-                    html += `<div class="student-result-row rounded-xl flex justify-between items-center" data-student-idx="${mentorStudentsList.indexOf(student)}">
-                        <div><span class="font-medium">${escapeHtml(student.email)}</span><div class="text-sm text-gray-500">${student.earned}/${student.total} (${student.percent}%)</div></div>
+                mentorStudentsList.forEach((student, idx) => {
+                    html += `<div class="student-result-row rounded-xl flex justify-between items-center" data-student-idx="${idx}">
+                        <div><span class="font-medium">${escapeHtml(student.displayName)}</span><div class="text-sm text-gray-500">${student.email} • ${student.earned}/${student.total} (${student.percent}%)</div></div>
                         <i class="fas fa-chevron-right text-gray-400"></i>
                     </div>`;
                 });
@@ -284,63 +305,99 @@
             html += `</div>`;
         }
         
+        // Для ученика: финальная страница с итогами (без тоста!)
+        if (userRole === "student" && !isReviewMode && currentPage === currentPagesArray.length - 1 && !isViewMode) {
+            let totalPoints = 0, earnedPoints = 0;
+            for (let p = 0; p < currentPagesArray.length; p++) {
+                const page = currentPagesArray[p]; const pageAns = currentPageAnswers[p] || {};
+                for (let i = 0; i < page.length; i++) {
+                    const el = page[i]; if (el.type === 'text') continue;
+                    totalPoints += el.points; const ans = pageAns[i];
+                    if (el.type === 'choice' && ans && ans.selected !== undefined && el.correctAnswer && el.correctAnswer.includes(ans.selected)) earnedPoints += el.points;
+                    else if (el.type === 'textarea' && ans && ans.value && ans.value.trim().length > 0) earnedPoints += el.points;
+                }
+            }
+            const percent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+            html = `<div class="text-center py-10">
+                <div class="text-6xl mb-4">🎉</div>
+                <h2 class="text-2xl font-bold mb-2">Задание завершено!</h2>
+                <div class="bg-indigo-50 rounded-xl p-6 max-w-md mx-auto">
+                    <p class="text-lg">Правильно выполнено: <span class="font-bold text-green-600">${earnedPoints}</span> из <span class="font-bold">${totalPoints}</span></p>
+                    <p class="text-3xl font-bold mt-2">${percent}%</p>
+                </div>
+                <button id="finalSaveResultBtn" class="mt-6 bg-green-600 text-white px-6 py-2 rounded-xl font-bold">Сохранить результат</button>
+            </div>`;
+        }
+        
         content.innerHTML = html;
         
-        // Привязываем клики по ученикам для наставника
+        // Кнопка сохранения результата для ученика
+        if (!isReviewMode && userRole === "student" && currentPage === currentPagesArray.length - 1 && !isViewMode) {
+            const saveBtn = document.getElementById("finalSaveResultBtn");
+            if (saveBtn) saveBtn.onclick = async () => {
+                let totalPoints = 0, earnedPoints = 0;
+                for (let p = 0; p < currentPagesArray.length; p++) {
+                    const page = currentPagesArray[p]; const pageAns = currentPageAnswers[p] || {};
+                    for (let i = 0; i < page.length; i++) {
+                        const el = page[i]; if (el.type === 'text') continue;
+                        totalPoints += el.points; const ans = pageAns[i];
+                        if (el.type === 'choice' && ans && ans.selected !== undefined && el.correctAnswer && el.correctAnswer.includes(ans.selected)) earnedPoints += el.points;
+                        else if (el.type === 'textarea' && ans && ans.value && ans.value.trim().length > 0) earnedPoints += el.points;
+                    }
+                }
+                const percent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
+                const studentAnswersCopy = JSON.parse(JSON.stringify(currentPageAnswers));
+                await db.collection("results").add({ taskId: currentTask.id, taskTitle: currentTask.title, studentId: currentUserObj.uid, studentEmail: currentUserObj.email, earnedPoints, totalPoints, percent, studentAnswers: studentAnswersCopy, completedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                const snap = await db.collection("results").where("studentId", "==", currentUserObj.uid).get();
+                completedTasksData.clear(); snap.forEach(d => completedTasksData.set(d.data().taskId, d.data()));
+                showToast(`Результат сохранён! ${earnedPoints}/${totalPoints} (${percent}%)`);
+                document.getElementById("taskFullscreen").classList.add("hidden");
+                loadTasks();
+            };
+        }
+        
+        if (!isReviewMode && userRole !== "mentor") {
+            document.querySelectorAll(".quiz-option").forEach(opt => { opt.addEventListener("click", () => { const selectedIdx = parseInt(opt.dataset.opt); const taskCard = opt.closest('.task-element-card'); const elemIdx = parseInt(taskCard.dataset.elemIndex); if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; currentPageAnswers[currentPage][elemIdx] = { type: 'choice', selected: selectedIdx }; renderFullscreenTask(false); }); });
+            document.querySelectorAll(".textarea-ans").forEach(ta => { ta.addEventListener("input", (e) => { const elemIdx = parseInt(ta.dataset.elemIdx); if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; currentPageAnswers[currentPage][elemIdx] = { type: 'textarea', value: e.target.value }; }); });
+        }
+        
+        // Клики по ученикам для наставника
         if (userRole === "mentor" && isReviewMode) {
             document.querySelectorAll('.student-result-row').forEach(row => {
                 row.addEventListener('click', () => {
                     const idx = parseInt(row.dataset.studentIdx);
                     const student = mentorStudentsList[idx];
                     if (student && student.answers) {
-                        // Открываем просмотр ответов ученика
                         currentPageAnswers = student.answers;
                         currentPage = 0;
                         renderFullscreenTask(true);
-                        showToast(`Просмотр ответов ученика: ${student.email}`, false);
+                        showToast(`Просмотр ответов: ${student.displayName}`, false);
                     }
                 });
             });
         }
         
-        if (!isReviewMode) {
-            document.querySelectorAll(".quiz-option").forEach(opt => { opt.addEventListener("click", () => { const selectedIdx = parseInt(opt.dataset.opt); const taskCard = opt.closest('.task-element-card'); const elemIdx = parseInt(taskCard.dataset.elemIndex); if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; currentPageAnswers[currentPage][elemIdx] = { type: 'choice', selected: selectedIdx }; renderFullscreenTask(false); }); });
-            document.querySelectorAll(".textarea-ans").forEach(ta => { ta.addEventListener("input", (e) => { const elemIdx = parseInt(ta.dataset.elemIdx); if (!currentPageAnswers[currentPage]) currentPageAnswers[currentPage] = {}; currentPageAnswers[currentPage][elemIdx] = { type: 'textarea', value: e.target.value }; }); });
-        }
-        
         const prevBtn = document.getElementById("fsPrevPage"), nextBtn = document.getElementById("fsNextPage"), finishBtn = document.getElementById("fsFinishBtn"), pageCounter = document.getElementById("fsPageCounter");
         prevBtn.disabled = (currentPage === 0); prevBtn.onclick = () => { if (currentPage > 0) { currentPage--; renderFullscreenTask(isReviewMode); } };
         pageCounter.innerText = `${currentPage + 1} / ${currentPagesArray.length}`;
-        if (currentPage === currentPagesArray.length - 1) { nextBtn.classList.add("hidden"); finishBtn.classList.remove("hidden"); if (!isReviewMode) finishBtn.onclick = () => checkAndFinishTask(); else finishBtn.onclick = () => modal.classList.add("hidden"); } 
-        else { nextBtn.classList.remove("hidden"); finishBtn.classList.add("hidden"); nextBtn.onclick = () => { if (currentPage < currentPagesArray.length - 1) { currentPage++; renderFullscreenTask(isReviewMode); } }; }
+        
+        if (userRole === "student" && !isReviewMode && currentPage === currentPagesArray.length - 1) {
+            nextBtn.classList.add("hidden"); finishBtn.classList.add("hidden");
+        } else if (currentPage === currentPagesArray.length - 1) {
+            nextBtn.classList.add("hidden"); finishBtn.classList.remove("hidden");
+            if (!isReviewMode && userRole === "student") finishBtn.onclick = () => { renderFullscreenTask(false); };
+            else finishBtn.onclick = () => modal.classList.add("hidden");
+        } else {
+            nextBtn.classList.remove("hidden"); finishBtn.classList.add("hidden");
+            nextBtn.onclick = () => { if (currentPage < currentPagesArray.length - 1) { currentPage++; renderFullscreenTask(isReviewMode); } };
+        }
         document.getElementById("closeTaskBtn").onclick = () => modal.classList.add("hidden");
         modal.classList.remove("hidden");
     }
 
-    async function checkAndFinishTask() {
-        let totalPoints = 0, earnedPoints = 0;
-        for (let p = 0; p < currentPagesArray.length; p++) {
-            const page = currentPagesArray[p]; const pageAns = currentPageAnswers[p] || {};
-            for (let i = 0; i < page.length; i++) {
-                const el = page[i]; if (el.type === 'text') continue;
-                totalPoints += el.points; const ans = pageAns[i];
-                if (el.type === 'choice' && ans && ans.selected !== undefined && el.correctAnswer && el.correctAnswer.includes(ans.selected)) earnedPoints += el.points;
-                else if (el.type === 'textarea' && ans && ans.value && ans.value.trim().length > 0) earnedPoints += el.points;
-            }
-        }
-        const percent = totalPoints > 0 ? Math.round((earnedPoints / totalPoints) * 100) : 0;
-        const studentAnswersCopy = JSON.parse(JSON.stringify(currentPageAnswers));
-        await db.collection("results").add({ taskId: currentTask.id, taskTitle: currentTask.title, studentId: currentUserObj.uid, studentEmail: currentUserObj.email, earnedPoints, totalPoints, percent, studentAnswers: studentAnswersCopy, completedAt: firebase.firestore.FieldValue.serverTimestamp() });
-        const snap = await db.collection("results").where("studentId", "==", currentUserObj.uid).get();
-        completedTasksData.clear(); snap.forEach(d => completedTasksData.set(d.data().taskId, d.data()));
-        showToast(`Результат: ${earnedPoints}/${totalPoints} (${percent}%)`);
-        document.getElementById("taskFullscreen").classList.add("hidden");
-        loadTasks();
-    }
-
     window.showImagePopup = (src) => { const popup = document.createElement('div'); popup.className = 'image-popup animate-fade-slide'; popup.innerHTML = `<img src="${src}"><div class="absolute top-5 right-5 text-white text-3xl cursor-pointer">&times;</div>`; popup.addEventListener('click', (e) => { if (e.target === popup || e.target.tagName === 'DIV') popup.remove(); }); document.body.appendChild(popup); };
 
-    // КОНСТРУКТОР (упрощённый, но удобный)
+    // КОНСТРУКТОР
     let pagesStore = [[]];
     function renderConstructorUI() {
         const container = document.getElementById("pagesContainer"); if (!container) return;
